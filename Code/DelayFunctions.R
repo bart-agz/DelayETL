@@ -1,5 +1,6 @@
 rm(list=ls())
-setwd("C:/R_PRojects/Hello-world-r/Data/RData")
+#setwd("C:/R_PRojects/Hello-world-r/Data/RData")
+setwd(paste(sep="",find_rstudio_root_file(),"./Data/RData"))
 load("Directories.RData")
 
 Correct_OL=function(x){

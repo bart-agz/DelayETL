@@ -3,7 +3,7 @@
 #11/9/22 AL
 
 rm(list=ls())
-setwd("C:/R_PRojects/Hello-world-r/Data/RData")
+setwd(paste(sep="",find_rstudio_root_file(),"./Data/RData"))
 load("Directories.RData")
 
 an=function(x){
@@ -272,7 +272,7 @@ SortDays=function(ds){
   ds=sort(as.Date(unlist(lapply(ds,function(x) strsplit(x,"\\.")[[1]][1])),"%d%b%Y"))
   return(ds)
 }
-setwd("C:/R_PRojects/Hello-world-r/Data/RData")
+
 setwd(data_rdata_dir)
 save.image("UtilityFunctions.RData")
 load("UtilityFunctions.RData")

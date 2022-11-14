@@ -1,9 +1,11 @@
 #Setup Directories and Directory References
 #Only needs to be executed once to setup Directories
 #11/9/22 AL
+library("rprojroot")
 
 rm(list=ls())
-dir="C:/R_PRojects/Hello-world-r"
+#dir="C:/R_PRojects/Hello-world-r"
+dir=find_rstudio_root_file()
 
 setwd(dir)
 dir.create("Data",showWarnings = F)
@@ -16,6 +18,7 @@ dir.create("Processed",showWarnings = F)
 dir.create("Individual",showWarnings = F)
 dir.create("Bulk",showWarnings = F)
 dir.create("RData",showWarnings = F)
+dir.create("References",showWarnings = F)
 
 data_processed_dir=paste0(data_dir,"/Processed")
 data_bulk_dir=paste0(data_dir,"/Bulk")
@@ -32,5 +35,5 @@ setwd(GDrive)
 setwd(data_rdata_dir)
 save.image("Directories.RData")
 
-setwd("C:/R_PRojects/Hello-world-r/Data/RData")
+#setwd("C:/R_PRojects/Hello-world-r/Data/RData")
 load("Directories.RData")
