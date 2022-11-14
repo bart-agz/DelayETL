@@ -1,4 +1,17 @@
 rm(list=ls())
+# Main Process Function
+library("rprojroot")
+rm(list=ls())
+
+#setwd to root of project
+setwd(find_rstudio_root_file())
+
+
+source(paste0(sep="", find_rstudio_root_file(), "/Code/Libraries.R"))
+source(paste0(sep="", find_rstudio_root_file(), "/Code/UtilityFunctions.R"))
+source(paste0(sep="",find_rstudio_root_file(), "/Code/References.R"))
+source(paste0(sep="",find_rstudio_root_file(), "/Code/DelayFunctions.R"))
+source(paste0(sep="",find_rstudio_root_file(), "/Code/CombineRDatas.R"))
 
 #setwd("C:/R_PRojects/Hello-world-r/Data/RData")
 
