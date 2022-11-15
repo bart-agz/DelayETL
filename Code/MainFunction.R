@@ -167,13 +167,38 @@ ProcessData=function(date){
   fwrite(x1,paste0(date,' TrainRun Non-Norm.csv'))
   fwrite(del1,paste0(date,' Delay Non-Norm.csv'))
   fwrite(di1,paste0(date,' Dispatches Non-Norm.csv'))
-}
+
+
+  #### start writing data.table to sql
+  #insert delay data into sql table
+  insertDataToSQL(del, date, "Delay")
+  
+  #insert CarList data into sql table
+  insertDataToSQL(carlist, date, "CarList")
+  
+  #insert DispatchList data into sql table
+  insertDataToSQL(di, date, "DispatchList")
+  
+  #insert RunList data into sql table
+  insertDataToSQL(x, date, "RunList")
+  
+  
+  
+  
+  #insert dispatch data to sql table
+  
+  
+  #insert train run data to sql table
+  
+  
+  }
 
 ProcessData_Bulk=function(){
   setwd(data_processed_dir)
   ds=list.files()
   # ds=SortDays(ds)
   for (date in ds){
+    print(date)
     wd<<-paste0(data_processed_dir,'/',date)
     wd_out<<-paste0(data_processed_dir,'/',date,"/FinalOutputs")
     if (!dir.exists(wd_out)){
