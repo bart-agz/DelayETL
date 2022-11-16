@@ -7,11 +7,12 @@ setwd(paste(sep="",find_rstudio_root_file(),"./Data/RData"))
 # load("Directories.RData")
 load("AllRdatas.RData")
 # load("UtilityFunctions.RData")
-date<-"06NOV2022"
+# date<-"06NOV2022"
 
 
 
 ProcessData=function(date){
+  date<<-date
   wd<<-paste0(data_processed_dir,'/',date)
   wd_out<<-paste0(data_processed_dir,'/',date,"/FinalOutputs")
   dir.create(wd_out,F)
@@ -126,7 +127,8 @@ ProcessData=function(date){
   
   SaveReload("Phase11.RData")
   SaveReload("Phase11.RData",save=F,reload=T)
-  
+  # setwd("C:/Users/jagnew/source/repos/bart-agz/DelayETL/Data/Processed/13NOV2022/")
+  # load("Phase11.RData")
   v<<-c("Id",setdiff(colnames(x),"ind"))
   x$Id<<-seq(1,nrow(x))
   x<<-x[,!"ind"]
@@ -138,7 +140,7 @@ ProcessData=function(date){
   x<<-Normalize(x,cc("SchedOrigin SchedDest ActOrigin ActDest Loc LLoc"),"LocationList",T)
   del<<-Normalize(del,cc("DelayCode"),"DelayTypesSortOrder",T)
   x<<-Normalize(x,cc("DelayCode"),"DelayTypesSortOrder",T)
-  di<<-Normalize(di,cc("SchedOrigin SchedDest"),"LocationList",T)
+  di<<-Normalize(di,cc("SchedOrigin SchedDest ActOrigin ActDest"),"LocationList",T)
   
   # del<<-del[,!"SortId"]
   print("Outputing")
@@ -157,7 +159,43 @@ ProcessData=function(date){
   
   SaveReload("Phase12.RData")
   SaveReload("Phase12.RData",save=F,reload =T)
+  setwd("C:/Users/jagnew/source/repos/bart-agz/DelayETL/Data/Processed/13NOV2022/")
+  load("Phase12.RData")
   setwd(wd_out)
+  di1[di1=="",]=NA
+  di1[di1==" ",]=NA
+  x$Note=trimws(x$Note)
+  
+  x[x=="",]=NA
+  x[x==" ",]=NA
+  
+  del[del=="",]=NA
+  del[del==" ",]=NA
+  
+  carlist[carlist=="",]=NA
+  carlist[carlist==" ",]=NA
+  
+  
+  di[di=="",]=NA
+  di[di==" ",]=NA
+  di[is.na(di$Locs),]$Locs=""
+  di[is.na(di$DelayCodes),]$DelayCodes=""
+
+  vars=cc("DO DC SDC SDO AD Note DL")
+  for (var in vars){
+    x[is.na(x[[var]]),][[var]]=""
+  }
+  vars=cc("AD Note DL DO DC SDO SDC")
+  for (var in vars){
+    x[x[[var]]=="",][[var]]="null"
+  }
+  
+  
+  mode(x$SchedDest)
+  
+  mode(di$Locs)
+  di$Locs
+  
   fwrite(x,paste0(date,' TrainRun.csv'))
   fwrite(del,paste0(date,' Delay.csv'))
   carlist<<-reordordt(carlist,c("Id",setdiff(colnames(carlist),"Id")))
@@ -171,27 +209,17 @@ ProcessData=function(date){
 
   #### start writing data.table to sql
   #insert delay data into sql table
-  insertDataToSQL(del, date, "Delay")
+  insertDataToSQL_Bulk(del, date, "Delay")
   
   #insert CarList data into sql table
-  insertDataToSQL(carlist, date, "CarList")
+  insertDataToSQL_Bulk(carlist, date, "CarList")
   
   #insert DispatchList data into sql table
-  insertDataToSQL(di, date, "DispatchList")
+  insertDataToSQL_Bulk(di, date, "DispatchList")
   
   #insert RunList data into sql table
-  insertDataToSQL(x, date, "RunList")
-  
-  
-  
-  
-  #insert dispatch data to sql table
-  
-  
-  #insert train run data to sql table
-  
-  
-  }
+  insertDataToSQL_Bulk(x, date, "RunList")
+}
 
 ProcessData_Bulk=function(){
   setwd(data_processed_dir)
