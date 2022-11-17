@@ -170,14 +170,15 @@ LoadData=function(date){
 }
 # date="08NOV2022"
 # LoadData(date)
-LoadData_Bulk=function(){
+LoadData_Bulk=function(full=F){
   setwd(data_individual_dir)
   ds=list.files()
-  ds=SortDays(ds)
+  # ds=SortDays(ds)
   for (d in ds){
+    d=ds[1]
     date=strsplit(d,"\\.")[[1]][1]
     setwd(data_processed_dir)
-    if (!(date %in% list.files())){
+    if (!(date %in% list.files()) | full){
       LoadData(date)      
     }
   }

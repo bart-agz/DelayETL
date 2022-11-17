@@ -319,23 +319,28 @@ Delete_Error_ER=function(x){
   del=c()
   for (rk in rks){
     t=x[x$RK==rk,]
-    l1=t[1,]$Code=="ED" & t[1,]$DO1==0
-    if (l1){
-      del=c(del,t[1,]$ind)
-      cd=intersect(strsplit(t[2,]$Code,"\\ ")[[1]],c("DH","ND"))
-      if (length(cd)==0){
-        cd=""
+    # print(t)
+    t=OverrideNA(t)
+    t0=t[1,]$Note!="HL"
+    if (t0){
+      l1=t[1,]$Code=="ED" & t[1,]$DO1==0
+      if (l1){
+        del=c(del,t[1,]$ind)
+        cd=intersect(strsplit(t[2,]$Code,"\\ ")[[1]],c("DH","ND"))
+        if (length(cd)==0){
+          cd=""
+        }
+        t[2,]$Code=cd
+        t[1,]$Del=0
+        t[1,]$Code=""
+        if (length(cd)==1 & cd==""){
+          t[2,]$Del=0
+        }
+        t$Delay=t$DD
+        #set delay to DD, does not include LR
       }
-      t[2,]$Code=cd
-      t[1,]$Del=0
-      t[1,]$Code=""
-      if (length(cd)==1 & cd==""){
-        t[2,]$Del=0
-      }
-      t$Delay=t$DD
-      #set delay to DD, does not include LR
+      x=Update(x,t)
     }
-    x=Update(x,t)
   }
   return(x)
 }
@@ -483,7 +488,7 @@ Calculate_LA=function(x){
     te=sr(x,rk)
     if ("LD" %in% StripCodes(te$Code)){
       rk2=na.omit(unique(te$PRK))
-      if (length(rk2)==1){
+      if (length(rk2)==1 & rk2!=""){
         te2=sr(x,rk2)
         dc=StripCodes(te2$Code,T)
         if (length(dc)>=1 & Logic_Eval_OR(last(te2$EOL)>=DelayThreshold,"OL" %in% te2$Code)){
@@ -499,22 +504,41 @@ Calculate_LA=function(x){
   }
   return(x)
 }
-Remove_All_ND=function(x){
-  # Function, delete "all" ND runs (pfm error, should be rare)
+Modify_All_ND=function(x){
+  # Function, modifies "all" ND runs to Hole (pfm error, should be rare)
+  # Function, modifies "all" ND runs to Hole (pfm error, should be rare)
+  # unsure how to handl, not a hole but does not carry passengers?
+  # leave as is, zero out dwell delay
+  # load("PhaseAB.RData")
+  # rk=585
   rks=SelectRKs(x)
   del=c()
+  print("Checking RD")
   for (rk in rks){
     t=x[x$RK==rk,]
     hl=t[1,]$Note=="HL"
     nd="ND" %in% t$Note
     if (!hl & nd){
+      t=OverrideNA(t)
       l1=sum(t$Code=="ND")==nrow(t)
       l2=all(t$DC1==t$DO1) & nrow(t)>=5
       # print(paste(rk,l1))
       if (l1 | l2){
-        print("deleting all ND")
-        print(t)
+        print("modifying all ND to ALL_ND")
+        t$Del=0
+        t$Note="All_ND"
+        vx=which(t$LRD>=1000)
+        if (length(vx)>=1){
+          t[vx,]$LRD=0
+          t[vx,]$Delay=0
+        }
         x=x[x$RK!=t$RK[1],]
+        # t[1,]$Note="HL"
+        # t[1,]$Del=1
+        # t$LRD=0
+        t$DD=0
+        print(t)
+        x=rbindlist(list(x,t))
       }
     }
   }
@@ -531,7 +555,8 @@ Fix_CL=function(x){
     l1=te[1,]$Loc==te[1,]$Or
     l2=te[nrow(te),]$Loc==te[nrow(te),]$De
     hl=!("HL" %in% te$Note)
-    if (!l2 & hl){
+    ALL_ND=te[1,]$Note=="All_ND"
+    if (!l2 & hl & !ALL_ND){
       if (verb){
         print("overriding cancellation:")
         print(te)
@@ -541,7 +566,7 @@ Fix_CL=function(x){
       te[nrow(te),]$Note="OL"
       x=Update(x,te)
     }
-    if (!l1 & hl){
+    if (!l1 & hl & !ALL_ND){
       if (verb){
         print("overriding offload:")
         print(te)
@@ -1007,6 +1032,7 @@ MergePot=function(){
 }
 Add_Del_Locations=function(x){
   vx=x$Del==1
+  x$DL=""
   x[vx,]$DL=x[vx,]$Loc
   return(x)
 }
@@ -1036,7 +1062,11 @@ CollapseDelays=function(x){
           dc=y$SDC1
           or=y$SOr;de=y$SDe
         }
-        yt=as.data.table(t(as.data.table(c(0,y$RevDate,y$RK,y$PRK,y$STrain, y$Tr,y$Rt,y$SOr,y$SDe,y$Or,y$De, dc,dc,y$Loc,y$Loc,dv,y$Code,y$EOL,y$PDelay,y$PDelayed))))
+        c1=c(0,y$RevDate,y$RK,y$PRK,y$STrain)
+        c2=c(y$Tr,y$Rt,y$SOr,y$SDe,y$Or)
+        c3=c(y$De, dc,dc,y$Loc,y$Loc)
+        c4=c(dv,y$Code,y$EOL,y$PDelay,y$PDelayed)
+        yt=as.data.table(t(as.data.table(c(c1, c2,c3,c4))))
         del=rbindlist(list(del,yt),use.names=F)
       }
     }
@@ -1072,7 +1102,6 @@ CollapseDelays=function(x){
   return(del)
 }
 
-setwd(data_rdata_dir)
 save.image("Delay Functions.RData")
 
 
