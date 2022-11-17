@@ -1,4 +1,6 @@
 Data/Individual/
+Data/Processed/
+Data/RData/
 
 # History files
 .Rhistory
