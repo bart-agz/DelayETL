@@ -259,20 +259,31 @@ SaveReload=function(fn,save=T,reload=T){
     save.image(fn)
   }
   if (reload){
-  # v=setdiff(ls(),'fn')
-  # # v1=(ls())
-  # # # print(!(fn %in% v))
-  # # print(length(v))
-  # # print(length(v1))
-  # rm(v)
-  load(fn)
+    # v=setdiff(ls(),'fn')
+    # # v1=(ls())
+    # # # print(!(fn %in% v))
+    # # print(length(v))
+    # # print(length(v1))
+    # rm(v)
+    load(fn)
   }
 }
 SortDays=function(ds){
   ds=sort(as.Date(unlist(lapply(ds,function(x) strsplit(x,"\\.")[[1]][1])),"%d%b%Y"))
   return(ds)
 }
-
+OverrideNA=function(t,cn=""){
+  if (cn==""){
+  if (sum(is.na(t))>=1){
+      t[is.na(t)]=""    
+    }
+  } else{
+    if (sum(is.na(t[[cn]]))>=1){
+      t[is.na(t[[cn]])][[cn]]=""    
+    }
+  }
+  return(t)
+}
 setwd(data_rdata_dir)
 save.image("UtilityFunctions.RData")
 load("UtilityFunctions.RData")
