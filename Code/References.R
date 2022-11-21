@@ -3,10 +3,13 @@ rm(list=ls())
 setwd(paste(sep="",find_rstudio_root_file(),"./Data/RData"))
 load("UtilityFunctions.RData")
 load("Directories.RData")
+rev_routes=seq(1,12)
+auto_late=c("CL","OL","HL")
 
 PossibleCodes=c("ED","LD","DH", "LR","SD","AD")
 #SD=LRL+DH>300 but both are <300
 
+LatenessThreshold=300
 DelayThreshold=300
 ADThreshold=30
 

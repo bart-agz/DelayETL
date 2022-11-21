@@ -508,6 +508,8 @@ Modify_All_ND=function(x){
   # Function, modifies "all" ND runs to Hole (pfm error, should be rare)
   # Function, modifies "all" ND runs to Hole (pfm error, should be rare)
   # unsure how to handl, not a hole but does not carry passengers?
+  # 11/17/22
+  # Classified as Hole 11/18/22
   # leave as is, zero out dwell delay
   # load("PhaseAB.RData")
   # rk=585
@@ -533,8 +535,8 @@ Modify_All_ND=function(x){
           t[vx,]$Delay=0
         }
         x=x[x$RK!=t$RK[1],]
-        # t[1,]$Note="HL"
-        # t[1,]$Del=1
+        t[1,]$Note="HL"
+        t[1,]$Del=1
         # t$LRD=0
         t$DD=0
         print(t)
@@ -754,6 +756,51 @@ GetPreviousTrain=function(del){
   del=reordordt(del,cc("Id RevDate RK PRK PTr STrain Tr Rt SOr SDe Or De Time1 Time2 Loc1 Loc2 Delay Code EOL PDelay PDelayed"))
   return(del)
 }
+ExpandDI=function(di){
+  # x[x$RK==90,]
+  # di[di$RunKey==90,]
+  # 
+  # di[di$RunKey==585,]
+  # del[del$RunKey==585.]
+  load("Phase09a.RData")
+  di$Scheduled=as.numeric(di$Rt %in% rev_routes)
+  di$Delayed=as.numeric(di$Rt %in% rev_routes & di$DelayCodes!="")
+  di$Late=as.numeric(di$Rt %in% rev_routes & (di$EOL>=LatenessThreshold))
+  for (i in seq(1,nrow(di))){
+    ro=di[i,]
+    if (is.na(ro$Late) & ro$Rt %in% rev_routes){
+      v=intersect(strsplit(ro$DelayCodes,"\\ ")[[1]],auto_late)
+      if (length(v)>=1){
+        di[i,]$Late=1
+      }
+    }
+  }
+  
+  # di$Late=as.numeric((di$Late | di$DelayCodes %in% auto_late) & di$Rt %in% rev_routes)
+  
+  
+  all(di[di$Scheduled==0,]$Delayed==0)
+  all(di[di$Scheduled==0,]$Late==0)
+  
+  di[di$DelayCodes=="HL" & di$Route %in% rev_routes,]
+  
+  di[di$Route %in% seq(13,14),]$Delayed
+  di[di$Route %in% seq(13,14),]$Late
+  print(nrow(di[is.na(di$Late),])==0)
+  
+  print(paste(sum(di$Scheduled),"Scheduled Dispatches (Exclude SFO Shuttles)"))
+  print(paste(sum(di$Scheduled),"Scheduled Dispatches (Exclude SFO Shuttles)"))
+  
+  print(paste(sum(di$Delayed)," trains delayed"))
+  print(paste(sum(di$Delayed & di$Late)," trains delayed and late"))
+  print(paste(sum(di$Delayed & !di$Late)," trains delayed and on time late"))
+
+  print(paste(sum(di$Delayed)," trains late"))
+  print(paste(sum(di$Delayed & di$Late)," trains late and delayed"))
+  print(paste(sum(!di$Delayed & di$Late)," trains late and not delayed"))
+    
+  return(di)
+}
 
 CleanDel=function(del){
   colnames(del)[colnames(del)=="STrain"]="SchedTrain"
@@ -819,14 +866,17 @@ CleanDetailed=function(x){
   
   colnames(x)[colnames(x)=="Dir"]="Direction"
   x=ChangeColumnNames(x,"RK","RunKey")
-  x=ChangeColumnNames(x,"EOL","EOLDelay")
+  colnames(x)[colnames(x)=="EOL"]="EOLDelay"
+  # x=ChangeColumnNames(x,"EOL","EOLDelay")
   
   x=ChangeColumnNames(x,"PDelayed","PassDelay")
   
   x=ChangeColumnNames(x,"PDelayed","NumPassDelayed")
   x=ChangeColumnNames(x,"SOrigin","SchedOrigin")
   x=ChangeColumnNames(x,"SDest","SchedDest")
-  x[x==0]=NA
+  # x[x==0]=NA
+  #removed 11/18/22 causing EOL =0 to be NA (error)
+  #mayn eed other 0's to NA
   return(x)
 }
 
@@ -1003,6 +1053,8 @@ CalculateDispatches=function(x){
     cds=te[te$Del==1,]$Code
     cds=cds[cds!=""]
     lo=te$DL
+    #changed 11/18/22 to include all AD locations
+    lo=te[te$Code!="",]$Loc
     lo=lo[lo!=""]
     lo=paste(lo,collapse=" ")
     di[i,]$TotalDelay=v1+v2

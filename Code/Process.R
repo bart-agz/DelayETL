@@ -40,6 +40,7 @@ LoadData_Bulk(T)
 # LoadData("15NOV2022")
 #initial load data
 timestamp()
+insertDataToSQL_Logic=T
 
 # ProcessData_Bulk=function(){
   setwd(data_processed_dir)
