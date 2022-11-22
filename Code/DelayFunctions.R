@@ -393,7 +393,7 @@ Calculate_Passenger_Delay=function(x){
   # rm(list=ls())
   # load("dgv.RDAta")
   # x=x[x$RK %in% c(689,650) & x$Code!="",]
-  vx=x$Delay<0 & x$Code!=""
+  vx=x$Delay<0 & x$Code!="" & !agrepl("ED",x$Code,0)
   if (sum(vx)>=1){
     x[vx,]$Delay=0
   }
@@ -483,6 +483,7 @@ Correct_WrongData=function(x){
 
 Calculate_LA=function(x){
   # Calculate LAs, LD's due to previous delays and EOL Late
+  load("phase04_2.RData")
   rks=SelectRKs(x)
   for (rk in rks){
     te=sr(x,rk)
@@ -491,13 +492,27 @@ Calculate_LA=function(x){
       if (length(rk2)==1 & rk2!=""){
         te2=sr(x,rk2)
         dc=StripCodes(te2$Code,T)
-        if (length(dc)>=1 & Logic_Eval_OR(last(te2$EOL)>=DelayThreshold,"OL" %in% te2$Code)){
-          # print(rk)
-          # if (length(dc)>=1 & last(te2$EOL)>=DelayThreshold){
-          # print(rk)
-          # print(te)
-          te$Code=gsub("LD","LA",te$Code)
-          x=Update(x,te)
+        dc=setdiff(dc,"ND")
+        #11/21/22 removed ND as possible delays
+        if (length(dc)>=1 & (Logic_Eval_OR(as.numeric(last(te2$EOL))>=DelayThreshold,"OL" %in% te2$Code) | "CL" %in% te2$Code | "HL" %in% te2$Code)){
+          #11/21/22: do not reclassify as LA train catches up after non-ND delay
+          te2$Lateness=as.numeric(te2$DC1)-as.numeric(te2$SDC1)
+          vv=which(te2$Code!="" & te2$Code!="ND")
+          change=F
+          for (v in vv){
+            l=te2[v:nrow(te2),]$Lateness>=LatenessThreshold
+            if (all(l)){
+              change=T
+            }
+          }
+          if (change){
+            # print(te)
+            # print(te2)
+            # print(rk)
+            # print("--------------")
+            te$Code=gsub("LD","LA",te$Code)
+            x=Update(x,te)
+          }          
         }    
       }
     }
@@ -505,9 +520,8 @@ Calculate_LA=function(x){
   return(x)
 }
 Modify_All_ND=function(x){
-  # Function, modifies "all" ND runs to Hole (pfm error, should be rare)
-  # Function, modifies "all" ND runs to Hole (pfm error, should be rare)
-  # unsure how to handl, not a hole but does not carry passengers?
+  # Function, modifies "all" ND runs to Hole (pfm/ics error?, should be very rare)
+  # unsure how to handle, not a hole but does not carry passengers?
   # 11/17/22
   # Classified as Hole 11/18/22
   # leave as is, zero out dwell delay
@@ -775,8 +789,7 @@ ExpandDI=function(di){
       }
     }
   }
-  
-  # di$Late=as.numeric((di$Late | di$DelayCodes %in% auto_late) & di$Rt %in% rev_routes)
+  di$Late=as.numeric((di$Late | di$DelayCodes %in% auto_late) & di$Rt %in% rev_routes)
   
   
   all(di[di$Scheduled==0,]$Delayed==0)
@@ -786,6 +799,14 @@ ExpandDI=function(di){
   
   di[di$Route %in% seq(13,14),]$Delayed
   di[di$Route %in% seq(13,14),]$Late
+  
+  # di$Recoveries=0
+  # ii=which(di$Delays>=1)
+  # for (i in ii){
+  #   te=x[x$RK==di[i,]$RK,]
+  #   te[!(agrepl("HL",te$Code) & !(agrepl("HL",te$Code) & te$Code!="",]
+  #   
+  # }
   print(nrow(di[is.na(di$Late),])==0)
   
   print(paste(sum(di$Scheduled),"Scheduled Dispatches (Exclude SFO Shuttles)"))
@@ -794,11 +815,11 @@ ExpandDI=function(di){
   print(paste(sum(di$Delayed)," trains delayed"))
   print(paste(sum(di$Delayed & di$Late)," trains delayed and late"))
   print(paste(sum(di$Delayed & !di$Late)," trains delayed and on time late"))
-
+  
   print(paste(sum(di$Delayed)," trains late"))
   print(paste(sum(di$Delayed & di$Late)," trains late and delayed"))
   print(paste(sum(!di$Delayed & di$Late)," trains late and not delayed"))
-    
+  
   return(di)
 }
 
@@ -937,7 +958,6 @@ GroupDelays=function(del,x){
 }
 HL_ND_OL=function(x){
   # function to override all delays at stations were Hole is present 
-  # 19 JUL 2022 RK=589
   rks=SelectRKs(x)
   for (rk in rks){
     t=x[x$RK==rk,]
@@ -952,13 +972,16 @@ HL_ND_OL=function(x){
   return(x)
 }
 GroupDelays2=function(del,x){
+  # load("Phase07.RData")
   rks=SelectRKs(del)
+  table(del$Group)
   for (rk in rks){
     t=del[del$RK==rk,]
     if (nrow(t)>1){
       gr=max(na.omit(del$Group))+1
       if (is.na(gr)){gr=1}
       for (i in seq(1,nrow(t)-1)){
+        change=F
         next_loc=t[i,]$Loc2==t[i+1,]$Loc1
         locs=c(t[i,]$Loc2)
         locs=c(locs,t[i+1,]$Loc1)
@@ -967,8 +990,13 @@ GroupDelays2=function(del,x){
         touching=1 %in% diff(sort(tx$ind))
         if (touching){
           if (!is.na(t[i,]$Group) | !is.na(t[i+1,]$Group)){
-            t[i,]$Group=gr
-            t[i+1,]$Group=gr
+            # print(rk)
+            t[t$Group %in%  t[i,]$Group | t$Group %in% t[i+1,]$Group,]$Group=gr
+            # t[i,]$Group=gr;t[i+1,]$Group=gr
+            change=T
+            if (change){
+              del=Update(del,t)
+            }
             gr=unique(na.omit(c(t[i,]$Group,t[i+1,]$Group)))
           }
           if (!is.na(t[i,]$Group) & !is.na(t[i+1,]$Group) & t[i,]$Group!=t[i+1,]$Group){
@@ -979,30 +1007,57 @@ GroupDelays2=function(del,x){
             sys
           }
         }
+        if (verb){print(t)}
       }
-      if (verb){print(t)}
-      del=Update(del,t)
     }
   }
   return(del)
 }
 
 Group_Delays_LA=function(x){
-  vx=which(del$Code=="LA")
+  load("Phase06a.RData")
   del$ind=seq(1,nrow(del))
+  vx=which(del$Code=="LA")
+  del[del$Group==28,]
+  del[del$Group==40,]
+  # i=vx[1]
   if (length(vx)>=1){
     for (i in vx){
+      # print(i)
       t1=del[i,]
       # t2=del[del$RK==t1$RK & del$ind!=t1$ind,]
       t2=del[del$RK==t1$PRK]
       if (nrow(t2)==0){
-        sys
+        sysLaNrow
       }
+      change=F
       t2=t2[nrow(t2),]
-      t1$Group=t2$Group
-      del=Update(del,t1)
+      if (is.na(t1$Group) & !is.na(t2$Group)){
+        t1$Group=t2$Group
+        change=T
+      } else if (!is.na(t1$Group) & is.na(t2$Group)){
+        t2$Group=t1$Group
+        change=T
+      } else if (is.na(t1$Group) & is.na(t2$Group)){
+        gr=max(na.omit(del$Group)+1)
+        t1$Group=gr;t2$Group=gr
+        change=T
+      } else if (!is.na(t1$Group) & !is.na(t2$Group)){
+        #pick lowest one
+        v=min(t2$Group,t1$Group)
+        del[del$Group %in% c(t1$Group,t2$Group),]$Group=v
+        gr=max(na.omit(del$Group))+1
+      } else {
+        srtkpwtlq
+        #should never happen 4/4 scenarios covered
+      }
+      if (change){
+        del=Update(del,t1)
+        del=Update(del,t2)
+      }
     }
   }
+  
   return(del)
 }
 
@@ -1099,7 +1154,6 @@ CollapseDelays=function(x){
     te=x[x$RK==rk,]
     if (1 %in% te$Del){
       tx=te[te$Del==1,]
-      tx
       for (i in seq(1,nrow(tx))){
         y=te[te$ind==tx[i,]$ind,]
         dv=y$Delay

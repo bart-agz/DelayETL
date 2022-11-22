@@ -42,22 +42,19 @@ LoadData_Bulk(T)
 timestamp()
 insertDataToSQL_Logic=T
 
-# ProcessData_Bulk=function(){
-  setwd(data_processed_dir)
-  ds=list.files()
-  # ds=SortDays(ds)
-  for (date in ds){
-    d<<-date
+setwd(data_processed_dir)
+ds=list.files()
+for (date in ds){
+  d<<-date
+  print(date)
+  wd<<-paste0(data_processed_dir,'/',date)
+  wd_out<<-paste0(data_processed_dir,'/',date,"/FinalOutputs")
+  if (!dir.exists(wd_out)){
     print(date)
-    wd<<-paste0(data_processed_dir,'/',date)
-    wd_out<<-paste0(data_processed_dir,'/',date,"/FinalOutputs")
-    if (!dir.exists(wd_out)){
-      print(date)
-      source(paste0(sep="",find_rstudio_root_file(), "/Code/MainFunction.R"))
-    }
+    source(paste0(sep="",find_rstudio_root_file(), "/Code/MainFunction.R"))
   }
-  setwd(wd)
-# }
+}
+setwd(wd)
 
-date="15NOV2022"
-setwd("C:/")
+# date="15NOV2022"
+# setwd("C:/")

@@ -178,14 +178,24 @@ Update=function(x,t){
   # Error Checking: input rows = output row
   v1=nrow(x)
   t=reordordt(t,colnames(x))
-  x=rbindlist(list(t,x[!(x$ind %in% t$ind),]))
+  # if ('ind' %in% colnames(x)){
+  x=rbindlist(list(t,x[!(x$ind %in% t$ind),]))    
+  # } else if ('Id' %in% colnames(x)) {
+  #   x=rbindlist(list(t,x[!(x$Id %in% t$Id),]))    
+  # } else {
+  #   sysErrorWrongColumn
+  # }
   v2=nrow(x)
   if (v1!=v2){
     syserror
   }
+  if ("ind" %in% colnames(x)){
+    x=x[order(x$ind),]
+  }
   if ("DC1" %in% colnames(x)){
     x=x[order(x$RK,x$DC1),]
   }
+  
   return(x)
 }
 ul=function(x){
@@ -274,7 +284,7 @@ SortDays=function(ds){
 }
 OverrideNA=function(t,cn=""){
   if (cn==""){
-  if (sum(is.na(t))>=1){
+    if (sum(is.na(t))>=1){
       t[is.na(t)]=""    
     }
   } else{
@@ -283,6 +293,10 @@ OverrideNA=function(t,cn=""){
     }
   }
   return(t)
+}
+AddLateness=function(x){
+  x$Lateness=as.numeric(x$DC1)-as.numeric(x$SDC1)
+  return(x)
 }
 setwd(data_rdata_dir)
 save.image("UtilityFunctions.RData")

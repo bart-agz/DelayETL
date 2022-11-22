@@ -69,7 +69,6 @@ x=Add_AD(x)
 SaveReload("Phase04.RData")
 load("phase04.RData")
 
-
 x=Sum_AD(x)
 x=Expand_AD(x)
 print("ADS" %in% colnames(x))
@@ -102,8 +101,11 @@ SaveReload("Phase06.RData")
 load("Phase06.RData")
 print("Grouping Delays")
 del=GroupDelays(del,x)
+SaveReload("Phase06a.RData")
+load("Phase06a.RData")
 del=Group_Delays_LA(del)
 SaveReload("Phase07.RData")
+load("Phase07.RData")
 
 del=GroupDelays2(del,x)
 
