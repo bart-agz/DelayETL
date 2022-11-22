@@ -36,14 +36,15 @@ PurgeData(all=T)
 TransferData()
 #transfers data from G drive to C drive
 
-LoadData_Bulk(T)
+LoadData_Bulk()
 # LoadData("15NOV2022")
 #initial load data
 timestamp()
-insertDataToSQL_Logic=T
+insertDataToSQL_Logic=F
 
 setwd(data_processed_dir)
 ds=list.files()
+date=ds[2]
 for (date in ds){
   d<<-date
   print(date)

@@ -390,9 +390,7 @@ Calculate_NextRK=function(del){
 }
 Calculate_Passenger_Delay=function(x){
   # save.image("dgv.RData")
-  # rm(list=ls())
-  # load("dgv.RDAta")
-  # x=x[x$RK %in% c(689,650) & x$Code!="",]
+  load("phase04_1.RData")
   vx=x$Delay<0 & x$Code!="" & !agrepl("ED",x$Code,0)
   if (sum(vx)>=1){
     x[vx,]$Delay=0
@@ -400,75 +398,71 @@ Calculate_Passenger_Delay=function(x){
   # Function: estimate passenger delay using door and flow delay and passenger flows
   # never use negative delay or 0 delays
   x$PDelayed=0
-  # x[x$LRD>0 & x$Code!="",]$PDelayed=x[x$LRD>0 & x$Code!="",]$PDO
-  # x[x$DD>0 & x$Code!="",]$PDelayed=x[x$DD>0 & x$Code!="",]$PDelayed+x[x$DD>0 & x$Code!="",]$PDC
-  
   x$PDelay=0
-  # v=x$PDO*((x$LRD)/(60*60))
-  # x$PDelay=sapply(v,function(x) max(x,0))
-  # v=x$PDC*((x$DD)/(60*60))
-  # x$PDelay=x$PDelay+sapply(v,function(x) max(x,0))
-  x[x$Code=="",]$PDelay=0
-  #PDC = Passengers at door close (flow to next station)
-  vx=agrepl("ND",x$Code,0)
-  if (sum(vx)>=1){
-    x[vx,]$PDelay=0
-    x[vx,]$PDelayed=x[vx,]$PDC
-  }
-  vx=agrepl("CL",x$Code,0)
-  if (sum(vx)>=1){
-    x[vx,]$PDelay=0
-    x[vx,]$PDelayed=x[vx,]$PDC
-  }
-  vx=agrepl("ED",x$Code,0)
-  if (sum(vx)>=1){
-    x[vx,]$PDelay=0
-    x[vx,]$PDelayed=0
-  }
-  vx=agrepl("OL",x$Code,0)
-  if (sum(vx)>=1){
-    x[vx,]$PDelayed=x[vx,]$PDO
-    x[vx,]$PDelay=0
-    # x[vx,]$PDelayed=0
-  }
-  # vx=agrepl("LA",x$Code,0) | agrepl("AD",x$Code,0) 
-  # if (sum(vx)>=1){
-  #   x[vx,]$PDelay=x[vx,]$PDO*(x[vx,]$Delay/(60*60))
-  #   x[vx,]$PDelayed=x[vx,]$PDO
-  # }
-  vx=agrepl("CD",x$Code,0) 
-  if (sum(vx)>=1){
-    x[vx,]$PDelay=x[vx,]$PDelay+x[vx,]$PDO*(x[vx,]$LRD/(60*60))+x[vx,]$PDC*(x[vx,]$DD/(60*60))
-    x[vx,]$PDelayed=x[vx,]$PDelayed+(x[vx,]$PDO+x[vx,]$PDC)
-  }
   vx=agrepl("LR",x$Code,0)
   if (sum(vx)>=1){
     x[vx,]$PDelay=x[vx,]$PDelay+x[vx,]$PDO*(x[vx,]$LRD/(60*60))
     x[vx,]$PDelayed=x[vx,]$PDelayed+x[vx,]$PDO
   }
-  vx=agrepl("LD",x$Code,0)  | agrepl("LA",x$Code,0)
-  if (sum(vx)>=1){
-    x[vx,]$PDelay=x[vx,]$PDelay+x[vx,]$PDC*(x[vx,]$Dela/(60*60))
-    x[vx,]$PDelayed=x[vx,]$PDelayed+x[vx,]$PDC
-  }
   vx=agrepl("DH",x$Code,0)
   if (sum(vx)>=1){
-    x[vx,]$PDelay=x[vx,]$PDelay+max(0,x[vx,]$PDC*(x[vx,]$DD/(60*60)))
+    x[vx,]$PDelay=x[vx,]$PDelay+x[vx,]$PDC*(x[vx,]$DD/(60*60))
+    x[vx,]$PDelayed=x[vx,]$PDelayed+x[vx,]$PDC
+  }
+  vx=agrepl("CD",x$Code,0) 
+  if (sum(vx)>=1){
+    x[vx,]$PDelay=x[vx,]$PDelay+x[vx,]$PDO*(x[vx,]$LRD/(60*60))+x[vx,]$PDC*(x[vx,]$DD/(60*60))
+    x[vx,]$PDelayed=x[vx,]$PDelayed+(x[vx,]$PDO+x[vx,]$PDC)
+  }
+  vx=agrepl("LD",x$Code,0)  | agrepl("LA",x$Code,0)
+  if (sum(vx)>=1){
+    x[vx,]$PDelay=x[vx,]$PDelay+x[vx,]$PDC*(x[vx,]$Delay/(60*60))
     x[vx,]$PDelayed=x[vx,]$PDelayed+x[vx,]$PDC
   }
   vx=agrepl("AD",x$Code,0)
+  # x=x[vx,]
+  # vx=agrepl("AD",x$Code,0)
   if (sum(vx)>=1){
-    x[vx,]$PDelay=x[vx,]$PDelay
     vx1=vx & x$LRD>0
     vx2=vx & x$DD>0
     x[vx1,]$PDelayed=x[vx1,]$PDelayed+x[vx1,]$PDO
     x[vx2,]$PDelayed=x[vx2,]$PDelayed+x[vx2,]$PDC
-    
-    x[vx1,]$PDelayed=x[vx1,]$PDelay+x[vx1,]$LRD/(60*60)
-    x[vx2,]$PDelayed=x[vx2,]$PDelay+x[vx2,]$DD/(60*60)
+    x[vx1,]$PDelay=x[vx1,]$PDelay+x[vx1,]$LRD/(60*60)
+    x[vx2,]$PDelay=x[vx2,]$PDelay+x[vx2,]$DD/(60*60)
     # max(0,x[vx,]$PDO*(x[vx,]$DO/(60*60)))+max(0,x[vx,]$PDC*(x[vx,]$DD/(60*60)))
     # x[vx,]$PDelayed=x[vx,]$PDelayed+x[vx,]
   }
+  vx=agrepl("ED",x$Code,0)
+  if (sum(vx)>=1){
+    x[vx,]$PDelay=x[vx,]$PDelay+0
+    x[vx,]$PDelayed=x[vx,]$PDelayed+0
+  }
+  vx=agrepl("ND",x$Code,0)
+  if (sum(vx)>=1){
+    x[vx,]$PDelay=x[vx,]$PDelay+0
+    x[vx,]$PDelayed=x[vx,]$PDelayed+x[vx,]$PDC
+  }
+  vx=agrepl("CL",x$Code,0)
+  if (sum(vx)>=1){
+    x[vx,]$PDelay=x[vx,]$PDelay+0
+    x[vx,]$PDelayed=x[vx,]$PDelayed+0
+  }
+  vx=agrepl("OL",x$Code,0)
+  if (sum(vx)>=1){
+    x[vx,]$PDelayed=x[vx,]$PDelayed+x[vx,]$PDO
+    x[vx,]$PDelay=x[vx,]$PDelay+0
+  }
+  vx=agrepl("HL",x$Code,0)
+  if (sum(vx)>=1){
+    x[vx,]$PDelayed=x[vx,]$PDelayed+0
+    x[vx,]$PDelay=x[vx,]$PDelay+0
+  }
+  
+  # vx=agrepl("LA",x$Code,0) | agrepl("AD",x$Code,0) 
+  # if (sum(vx)>=1){
+  #   x[vx,]$PDelay=x[vx,]$PDO*(x[vx,]$Delay/(60*60))
+  #   x[vx,]$PDelayed=x[vx,]$PDO
+  # }
   
   return(x)
 }
@@ -529,7 +523,7 @@ Modify_All_ND=function(x){
   # rk=585
   rks=SelectRKs(x)
   del=c()
-  print("Checking RD")
+  print("Checking for All_NDs")
   for (rk in rks){
     t=x[x$RK==rk,]
     hl=t[1,]$Note=="HL"
@@ -789,8 +783,21 @@ ExpandDI=function(di){
       }
     }
   }
-  di$Late=as.numeric((di$Late | di$DelayCodes %in% auto_late) & di$Rt %in% rev_routes)
-  
+  # di=di[464,]
+  sum(di$Late)
+  for (i in seq(1,nrow(di))){
+    ro=di[i,]
+    cds=ro$DelayCodes
+    if (ro$Rt %in% rev_routes){
+      v=max(unlist(lapply(auto_late,function(x)agrepl(x,cds,0))))
+      if (v==1){
+        di[i,]$Late=1
+      }
+    }
+  }
+  # di$Late=as.numeric((di$Late | max(unlist(lapply(auto_late,function(x)agrepl(x,di$DelayCodes,0))))) & di$Rt %in% rev_routes)
+  di
+  # sum(di$Late)
   
   all(di[di$Scheduled==0,]$Delayed==0)
   all(di[di$Scheduled==0,]$Late==0)
@@ -809,20 +816,20 @@ ExpandDI=function(di){
   # }
   print(nrow(di[is.na(di$Late),])==0)
   
-  print(paste(sum(di$Scheduled),"Scheduled Dispatches (Exclude SFO Shuttles)"))
+  # print(paste(sum(di$Scheduled),"Scheduled Dispatches (Exclude SFO Shuttles)"))
   print(paste(sum(di$Scheduled),"Scheduled Dispatches (Exclude SFO Shuttles)"))
   
   print(paste(sum(di$Delayed)," trains delayed"))
   print(paste(sum(di$Delayed & di$Late)," trains delayed and late"))
   print(paste(sum(di$Delayed & !di$Late)," trains delayed and on time late"))
   
-  print(paste(sum(di$Delayed)," trains late"))
+  print(paste(sum(di$Late)," trains late"))
   print(paste(sum(di$Delayed & di$Late)," trains late and delayed"))
   print(paste(sum(!di$Delayed & di$Late)," trains late and not delayed"))
   
   return(di)
 }
-
+#430 1315NOV2022
 CleanDel=function(del){
   colnames(del)[colnames(del)=="STrain"]="SchedTrain"
   colnames(del)[colnames(del)=="Tr"]="ActTrain"
@@ -1145,6 +1152,7 @@ Add_Del_Locations=function(x){
 }
 CollapseDelays=function(x){
   # Function: Collapses Delay
+  load("Phase05.RData")
   rks=SelectRKs(x)
   cns=cc("Id RevDate RK PRK STrain Tr Rt SOr SDe Or De Time1 Time2 Loc1 Loc2 Delay Code EOL PDelay PDelayed")
   del=matrix(ncol=length(cns),nrow=0)
@@ -1156,10 +1164,18 @@ CollapseDelays=function(x){
       tx=te[te$Del==1,]
       for (i in seq(1,nrow(tx))){
         y=te[te$ind==tx[i,]$ind,]
+        pdlay=y$PDelay
+        pdlayed=y$PDelayed
         dv=y$Delay
         ad=agrepl("AD",tx[i,]$Code,0)
         if (ad){
+          # if (sum(te$AD>=2) | any(diff(which(te$Code=="AD"))>1)){
+          #   sysADunexpected
+          # }
+          pdlay=sum(te[te$AD==y$AD,]$PDelay)
+          pdlayed=sum(te[te$AD==y$AD,]$PDelayed)
           dv=y$ADS
+          y[y$AD==1,]
         }
         hl=tx[i,]$Code=="HL"
         or=y$Or;de=y$De
@@ -1171,14 +1187,14 @@ CollapseDelays=function(x){
         c1=c(0,y$RevDate,y$RK,y$PRK,y$STrain)
         c2=c(y$Tr,y$Rt,y$SOr,y$SDe,y$Or)
         c3=c(y$De, dc,dc,y$Loc,y$Loc)
-        c4=c(dv,y$Code,y$EOL,y$PDelay,y$PDelayed)
+        c4=c(dv,y$Code,y$EOL,pdlay,pdlayed)
         yt=as.data.table(t(as.data.table(c(c1, c2,c3,c4))))
         del=rbindlist(list(del,yt),use.names=F)
       }
     }
-  }
-  
+  }  
   del=ann(del)
+  del[del$RK==768,]
   table(del$Code)
   for (i in seq(1,nrow(del))){
     te=del[i,]
@@ -1207,7 +1223,46 @@ CollapseDelays=function(x){
   mode(del$Time2)='numeric'
   return(del)
 }
+Group_Adjacent_Stations_RK=function(del){
+  # group adject delays for 1 runkey
+  load("Phase08.RData")
+  rks=SelectRKs(del)
+  del
+  print("Grouping Adjacent Stations per RK")
+  for (i in seq(1,nrow(del))){
+    g=max(na.omit(del$Group))+1
+    n=del[i,]
+    nn=del[del$RK==n$RK,]
+    if (nrow(nn)>1){
+      nn=nn[(1:2),]
+      t=x[x$RK==n$RK,]
+      v1=max(abs(which(nn$Loc2[2]==t$Loc)-which(nn$Loc2[1]==t$Loc)),0)
+      v2=max(abs(which(nn$Loc[2]==t$Loc)-which(nn$Loc[1]==t$Loc)),0)
+      v3=max(abs(which(nn$Loc2[1]==t$Loc)-which(nn$Loc2[2]==t$Loc)),0)
+      v4=max(abs(which(nn$Loc[1]==t$Loc)-which(nn$Loc[2]==t$Loc)),0)
+      v5=max(abs(which(nn$Loc2[1]==t$Loc)-which(nn$Loc2[1]==t$Loc)),0)
+      v6=max(abs(which(nn$Loc[1]==t$Loc)-which(nn$Loc[1]==t$Loc)),0)
+      v7=max(abs(which(nn$Loc2[2]==t$Loc)-which(nn$Loc2[2]==t$Loc)),0)
+      v8=max(abs(which(nn$Loc[2]==t$Loc)-which(nn$Loc[2]==t$Loc)),0)
+      if (v1==1 | v2==1 | v3==1 | v4==1 | v5==1 | v6==1 | v7==1 | v8==1){
+        if (all(is.na(nn$Group))){
+          nn$Group=g
+          del=Update(del,nn)
+          print(nn)
+        } else if (length(unique(nn$Group))==1 & all(!is.na(nn$Group))) {
+          #do nothing
+        } else {
+          sysGroup_RK_Error
+        }
+      }
+    }
+  }
+  return(del)
+}
+
 
 save.image("Delay Functions.RData")
+
+
 
 

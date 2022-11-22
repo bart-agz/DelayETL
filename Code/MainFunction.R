@@ -112,13 +112,17 @@ del=GroupDelays2(del,x)
 SaveReload("Phase08.RData")
 load("Phase08.RData")
 
+del=Group_Adjacent_Stations_RK(del)
+
+SaveReload("Phase08a.RData")
+load("Phase08a.RData")
 del=Normalize_Groups(del)
 del=HL_Correction(del)
 del=SortID(del)
 
 SaveReload("Phase09.RData")
+rm(list=ls())
 load("Phase09.RData")
-
 print("Normalizing")
 
 di=CalculateDispatches(x)
@@ -154,7 +158,7 @@ di$Id=seq(1,nrow(di))
 
 SaveReload("Phase11.RData")
 SaveReload("Phase11.RData",save=F,reload=T)
-# setwd("C:/Users/jagnew/source/repos/bart-agz/DelayETL/Data/Processed/13NOV2022/")
+# setwd("C:/R_Projects/DelayETL/Data/Processed/13NOV2022")
 load("Phase11.RData")
 v=c("Id",setdiff(colnames(x),"ind"))
 x$Id=seq(1,nrow(x))
@@ -187,7 +191,7 @@ di1=reordordt(di1,cc("Id RevDate RunKey Route SDispatch SchedTrain ActOrigin Act
 SaveReload("Phase12.RData")
 SaveReload("Phase12.RData",save=F,reload =T)
 # setwd("C:/Users/jagnew/source/repos/bart-agz/DelayETL/Data/Processed/13NOV2022/")
-# load("Phase12.RData")
+load("Phase12.RData")
 setwd(wd_out)
 di1[di1=="",]=NA
 di1[di1==" ",]=NA
@@ -231,7 +235,6 @@ fwrite(delNonNorm,paste0(date,' Delay Non-Norm.csv'))
 fwrite(di1,paste0(date,' Dispatches Non-Norm.csv'))
 
 print(nrow(carlist)==nrow(di) & length(unique(di$RunKey))==length(unique(carlist$RUNKEY)) & length(intersect(carlist$RK,di$RunKey))==nrow(di))
-
 
 
 #### start writing data.table to sql

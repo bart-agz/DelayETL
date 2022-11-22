@@ -175,7 +175,6 @@ LoadData_Bulk=function(full=F){
   ds=list.files()
   # ds=SortDays(ds)
   for (d in ds){
-    d=ds[1]
     date=strsplit(d,"\\.")[[1]][1]
     setwd(data_processed_dir)
     if (!(date %in% list.files()) | full){
