@@ -40,10 +40,13 @@ LoadData_Bulk()
 # LoadData("15NOV2022")
 #initial load data
 timestamp()
-insertDataToSQL_Logic=F
+insertDataToSQL_Logic=T
 
 setwd(data_processed_dir)
 ds=list.files()
+date=ds[9]
+# ds=ds[9:length(ds)]
+ds=rev(ds)
 date=ds[2]
 for (date in ds){
   d<<-date

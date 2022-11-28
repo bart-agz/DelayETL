@@ -494,7 +494,7 @@ Calculate_LA=function(x){
           vv=which(te2$Code!="" & te2$Code!="ND")
           change=F
           for (v in vv){
-            l=te2[v:nrow(te2),]$Lateness>=LatenessThreshold
+            l=na.omit(te2[v:nrow(te2),]$Lateness>=LatenessThreshold)
             if (all(l)){
               change=T
             }
@@ -1259,7 +1259,23 @@ Group_Adjacent_Stations_RK=function(del){
   }
   return(del)
 }
-
+# Extend_Scheduled_Metrics=function(x){
+#   load("Phase00.RData")
+#   print(head(x))
+#   x=Correct_WrongData(x)
+#   # x=Extend_Scheduled_Metrics(x)
+#   rks=SelectRKs(x)
+#   rk=19
+#   for (rk in rks){
+#     t=x[x$RK==rk,]
+#     t
+#   }
+#   19 22969-36162-413-7
+#   carlist[carlist$RK==19,]
+#   # 408/10: 0:59-413 11/20/22
+#   
+# }
+# rk=19
 
 save.image("Delay Functions.RData")
 

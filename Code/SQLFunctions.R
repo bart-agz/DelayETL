@@ -11,24 +11,25 @@ setwd(paste(sep="",find_rstudio_root_file(),"./Data/RData"))
 
 
 # insert data to sql table
-insertDataToSQL_Bulk=function(data, date, tableName){
-  done=F
-  #upload 500 rows at a time
-  while (!done){
-    i=min(nrow(data),500)
-    insertDataToSQL(data[1:i,],date,tableName)
-    if (i==nrow(data)){
-      done=T
+insertDataToSQL_Bulk=function(data, date, tableName,individual=F){
+  if (individual){
+    #  SQL insert 1 row at a time
+    for (i in seq(1,nrow(data))){
+      print(i)
+      insertDataToSQL(data[i,],date,tableName)
     }
-    data=data[(i+1):nrow(data),]
+  } else {
+    done=F
+    #upload 500 rows at a time
+    while (!done){
+      i=min(nrow(data),500)
+      insertDataToSQL(data[1:i,],date,tableName)
+      if (i==nrow(data)){
+        done=T
+      }
+      data=data[(i+1):nrow(data),]
+    }
   }
-  #  SQL insert 1 row at a time
-  # for (i in seq(1,nrow(data))){
-  #   tableName="DispatchList"
-  #   data=di
-  #   print(i)  
-  #   insertDataToSQL(data[i,],date,tableName)
-  # }
 }
 
 insertDataToSQL = function(data, date, tableName){

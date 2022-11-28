@@ -31,10 +31,10 @@ x[is.na(x$Code),]$Code=""
 x0=x
 
 SaveReload("Phase00.RData")
-# load("Phase00.RData")
+load("Phase00.RData")
 print(head(x))
 x=Correct_WrongData(x)
-
+# x=Extend_Scheduled_Metrics(x)
 verb=F
 x=Correct_OL(x)
 save.image("PhaseAB.RData")
@@ -159,6 +159,7 @@ di$Id=seq(1,nrow(di))
 SaveReload("Phase11.RData")
 SaveReload("Phase11.RData",save=F,reload=T)
 # setwd("C:/R_Projects/DelayETL/Data/Processed/13NOV2022")
+
 load("Phase11.RData")
 v=c("Id",setdiff(colnames(x),"ind"))
 x$Id=seq(1,nrow(x))
@@ -222,7 +223,7 @@ for (var in vars){
 }
 SaveReload("Phase13.RData")
 SaveReload("Phase13.RData",save=F,reload =T)
-
+load("Phase13.RData")
 
 fwrite(x,paste0(date,' TrainRun.csv'))
 fwrite(del,paste0(date,' Delay.csv'))
@@ -240,7 +241,7 @@ print(nrow(carlist)==nrow(di) & length(unique(di$RunKey))==length(unique(carlist
 #### start writing data.table to sql
 #insert delay data into sql table
 if (insertDataToSQL_Logic){
-  insertDataToSQL_Bulk(del, date, "Delay")
+  insertDataToSQL_Bulk(del, date, "Delay",T)
   
   #insert CarList data into sql table
   insertDataToSQL_Bulk(carlist, date, "CarList")
