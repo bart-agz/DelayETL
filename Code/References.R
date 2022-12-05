@@ -4,7 +4,7 @@ setwd(paste(sep="",find_rstudio_root_file(),"./Data/RData"))
 load("UtilityFunctions.RData")
 load("Directories.RData")
 rev_routes=seq(1,12)
-auto_late=c("CL","OL","HL")
+auto_late=c("CL","OL","HL","ND")
 
 PossibleCodes=c("ED","LD","DH", "LR","SD","AD")
 #SD=LRL+DH>300 but both are <300

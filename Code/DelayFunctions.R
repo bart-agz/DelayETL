@@ -411,7 +411,7 @@ Calculate_Passenger_Delay=function(x){
   }
   vx=agrepl("CD",x$Code,0) 
   if (sum(vx)>=1){
-    x[vx,]$PDelay=x[vx,]$PDelay+x[vx,]$PDO*(x[vx,]$LRD/(60*60))+x[vx,]$PDC*(x[vx,]$DD/(60*60))
+    x[vx,]$PDelay=x[vx,]$PDelay+x[vx,]$PDO*(max(0,x[vx,]$LRD/(60*60)))+x[vx,]$PDC*(max(0,x[vx,]$DD/(60*60)))
     x[vx,]$PDelayed=x[vx,]$PDelayed+(x[vx,]$PDO+x[vx,]$PDC)
   }
   vx=agrepl("LD",x$Code,0)  | agrepl("LA",x$Code,0)
@@ -420,17 +420,13 @@ Calculate_Passenger_Delay=function(x){
     x[vx,]$PDelayed=x[vx,]$PDelayed+x[vx,]$PDC
   }
   vx=agrepl("AD",x$Code,0)
-  # x=x[vx,]
-  # vx=agrepl("AD",x$Code,0)
   if (sum(vx)>=1){
     vx1=vx & x$LRD>0
     vx2=vx & x$DD>0
     x[vx1,]$PDelayed=x[vx1,]$PDelayed+x[vx1,]$PDO
     x[vx2,]$PDelayed=x[vx2,]$PDelayed+x[vx2,]$PDC
-    x[vx1,]$PDelay=x[vx1,]$PDelay+x[vx1,]$LRD/(60*60)
-    x[vx2,]$PDelay=x[vx2,]$PDelay+x[vx2,]$DD/(60*60)
-    # max(0,x[vx,]$PDO*(x[vx,]$DO/(60*60)))+max(0,x[vx,]$PDC*(x[vx,]$DD/(60*60)))
-    # x[vx,]$PDelayed=x[vx,]$PDelayed+x[vx,]
+    x[vx1,]$PDelay=x[vx1,]$PDelay+max(0,x[vx1,]$LRD)/(60*60)*x[vx,]$PDO
+    x[vx2,]$PDelay=x[vx2,]$PDelay+max(0,x[vx2,]$DD)/(60*60)*x[vx,]$PDC
   }
   vx=agrepl("ED",x$Code,0)
   if (sum(vx)>=1){
@@ -441,6 +437,7 @@ Calculate_Passenger_Delay=function(x){
   if (sum(vx)>=1){
     x[vx,]$PDelay=x[vx,]$PDelay+0
     x[vx,]$PDelayed=x[vx,]$PDelayed+x[vx,]$PDC
+    #may need to be expaned to include transfers off/on
   }
   vx=agrepl("CL",x$Code,0)
   if (sum(vx)>=1){
@@ -451,6 +448,7 @@ Calculate_Passenger_Delay=function(x){
   if (sum(vx)>=1){
     x[vx,]$PDelayed=x[vx,]$PDelayed+x[vx,]$PDO
     x[vx,]$PDelay=x[vx,]$PDelay+0
+    #may need to be expaned to include transfers off/on
   }
   vx=agrepl("HL",x$Code,0)
   if (sum(vx)>=1){
