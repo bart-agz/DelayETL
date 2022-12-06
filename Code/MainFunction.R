@@ -20,8 +20,10 @@ fn_delays=paste0(date," delays.csv")
 fn_us=paste0(date," unscheduled.csv")
 fn_pot=paste0(date," POT.csv")
 
+
 fn_carlist=paste0(date," carlist.csv")
 setwd(wd)
+off=fread(paste0(date," Offloads.csv"))
 us=fread(fn_us)
 pot=fread(fn_pot)
 carlist=fread(fn_carlist)
@@ -50,6 +52,14 @@ load("Phase01.RData")
 x=Fix_CL(x)
 x=Add_DH_LR(x)
 x=Add_OL_CN_HL_ND(x) 
+
+SaveReload("Phase01a.RData")
+load("Phase01a.RData")
+
+###
+# off
+# x
+###
 
 x=HL_ND_OL(x)
 x=Add_LD_ED(x)
@@ -236,12 +246,22 @@ fwrite(delNonNorm,paste0(date,' Delay Non-Norm.csv'))
 fwrite(di1,paste0(date,' Dispatches Non-Norm.csv'))
 
 print(nrow(carlist)==nrow(di) & length(unique(di$RunKey))==length(unique(carlist$RUNKEY)) & length(intersect(carlist$RK,di$RunKey))==nrow(di))
+colnames(off)[colnames(off)=="Location"]="Loc"
+byv=cc("RevDate RK Loc")
+off=reordordt(off,c(byv,cc("TransfersOff TransfersOn")))
+mode(x[[byv[1]]])==mode(off[[byv[1]]])
+mode(x[[byv[2]]])==mode(off[[byv[2]]])
+mode(off[[byv[3]]])=mode(x[[byv[3]]])
 
 
+
+xt=merge(x,off,by=byv,all.x=T)
+print(nrow(xt)==nrow(x))
+x=xt
 #### start writing data.table to sql
 #insert delay data into sql table
 if (insertDataToSQL_Logic){
-  insertDataToSQL_Bulk(del, date, "Delay",T)
+  insertDataToSQL_Bulk(del, date, "Delay")
   
   #insert CarList data into sql table
   insertDataToSQL_Bulk(carlist, date, "CarList")

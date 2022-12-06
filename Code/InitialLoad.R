@@ -4,9 +4,6 @@ rm(list=ls())
 setwd(paste(sep="",find_rstudio_root_file(),"./Data/RData"))
 load("Directories.RData")
 # load("UtilityFunctions.RData")
-
-
-
 setwd(data_rdata_dir)
 LoadData=function(date){
   print(date)
@@ -32,7 +29,9 @@ LoadData=function(date){
     by="RUNKEY"
     del=merge(del,rk,by)
     print(nrow(del)==v1)
-    
+    vx=cc("RevDate RUNKEY RK SRK Route LastStation Location TransfersOff TransfersOn")
+    vx %in% colnames(del)
+    off=reordordt(del,vx)
     cars=reordordt(del,cc("RevDate RUNKEY RK SRK SLength Length FOTF CAR1 CAR2 CAR3 CAR4 CAR5 CAR6 CAR7 CAR8 CAR9 CAR10") )
     cars=unique(cars)
     cars$Id=seq(1,nrow(cars))
@@ -160,6 +159,7 @@ LoadData=function(date){
   print(nrow(cars)==nrow(pot))
   # +sum(del$Note=="HL"))
   fwrite(us,paste(datesl[1]$RevDate,"Unscheduled.csv"))
+  fwrite(off,paste(datesl[1]$RevDate,"Offloads.csv"))
   us<<-us  
   x=del
   x<<-x
