@@ -65,7 +65,7 @@ insertDataToSQL = function(data, date, tableName){
   data[data=="''"]="null"
   # data
   
-  print(paste0(tableName, " tabe, writing to sql server for rev date ", date))
+  print(paste0(tableName, " table, writing to sql server for rev date ", date))
   
   conn <- dbConnect(odbc(),
                     driver= "SQL Server",

@@ -425,8 +425,8 @@ Calculate_Passenger_Delay=function(x){
     vx2=vx & x$DD>0
     x[vx1,]$PDelayed=x[vx1,]$PDelayed+x[vx1,]$PDO
     x[vx2,]$PDelayed=x[vx2,]$PDelayed+x[vx2,]$PDC
-    x[vx1,]$PDelay=x[vx1,]$PDelay+max(0,x[vx1,]$LRD)/(60*60)*x[vx,]$PDO
-    x[vx2,]$PDelay=x[vx2,]$PDelay+max(0,x[vx2,]$DD)/(60*60)*x[vx,]$PDC
+    x[vx1,]$PDelay=x[vx1,]$PDelay+x[vx1,]$PDO*((x[vx1,]$LRD)/(60*60))
+    x[vx2,]$PDelay=x[vx2,]$PDelay+x[vx2,]$PDC*((x[vx2,]$DD)/(60*60))
   }
   vx=agrepl("ED",x$Code,0)
   if (sum(vx)>=1){
@@ -435,20 +435,50 @@ Calculate_Passenger_Delay=function(x){
   }
   vx=agrepl("ND",x$Code,0)
   if (sum(vx)>=1){
-    x[vx,]$PDelay=x[vx,]$PDelay+0
-    x[vx,]$PDelayed=x[vx,]$PDelayed+x[vx,]$PDC
-    #may need to be expaned to include transfers off/on
-  }
+    inds=x[vx,]$ind
+    ind=inds[1]
+    for (ind in inds){
+      v=x$ind==ind+1
+      off[off$Location==x[v,]$Loc & off$RK==x[v,]$RK,]
+      val=off[off$RK==x[v,]$RK & off$Location==x[v,]$Loc,]$TransfersOff
+      x[v,]$PDelayed=x[v,]$PDelayed+val
+      ro=x[v,]
+      ro2=x[x$Rt==ro$Rt & x$DC1>ro$DC1 & x$Loc==ro$Loc,][1,]
+      TimeBetweenRoutes=ro2$DC1-ro$DC1
+      if (is.na(TimeBetweenRoutes)){
+        TimeBetweenRoutes=30*60
+      }
+      x[v,]$PDelay=x[v,]$PDelay+(val*(TimeBetweenRoutes))/(60*60)
+    }
+    }
   vx=agrepl("CL",x$Code,0)
   if (sum(vx)>=1){
-    x[vx,]$PDelay=x[vx,]$PDelay+0
-    x[vx,]$PDelayed=x[vx,]$PDelayed+0
+    inds=x[vx,]$ind
+    for (ind in inds){
+      v=x$ind==ind
+      val=off[off$RK==x[v,]$RK & off$Location==x[v,]$Loc,]$TransfersOn
+      x[v,]$PDelayed=x[v,]$PDelayed+val
+      ro=x[v,]
+      x[v,]$PDelay=x[v,]$PDelay+0
+    }
   }
   vx=agrepl("OL",x$Code,0)
   if (sum(vx)>=1){
-    x[vx,]$PDelayed=x[vx,]$PDelayed+x[vx,]$PDO
-    x[vx,]$PDelay=x[vx,]$PDelay+0
-    #may need to be expaned to include transfers off/on
+    inds=x[vx,]$ind
+    for (ind in inds){
+      v=x$ind==ind
+      val=off[off$RK==x[v,]$RK & off$Location==x[v,]$Loc,]$TransfersOff
+      x[v,]$PDelayed=x[v,]$PDelayed+val
+      ro=x[v,]
+      ro2=x[x$Rt==ro$Rt & x$DC1>ro$DC1 & x$Loc==ro$Loc,][1,]
+      TimeBetweenRoutes=ro2$DC1-ro$DC1
+      if (is.na(TimeBetweenRoutes)){
+        TimeBetweenRoutes=30*60
+      }
+      x[v,]$PDelay=x[v,]$PDelay+(val*(TimeBetweenRoutes))/(60*60)
+    }
+    # v=off[paste(off$RK,off$Location)%in% paste(x[vx,]$RK,x[vx,]$Loc),]$TransfersOff
+    # v
   }
   vx=agrepl("HL",x$Code,0)
   if (sum(vx)>=1){
@@ -1260,7 +1290,7 @@ Group_Adjacent_Stations_RK=function(del){
 # Extend_Scheduled_Metrics=function(x){
 #   load("Phase00.RData")
 #   print(head(x))
-#   x=Correct_WrongData(x)
+#   # x=Correct_WrongData(x)
 #   # x=Extend_Scheduled_Metrics(x)
 #   rks=SelectRKs(x)
 #   rk=19
@@ -1268,12 +1298,52 @@ Group_Adjacent_Stations_RK=function(del){
 #     t=x[x$RK==rk,]
 #     t
 #   }
-#   19 22969-36162-413-7
+#   # 19 22969-36162-413-7
 #   carlist[carlist$RK==19,]
 #   # 408/10: 0:59-413 11/20/22
-#   
+# 
 # }
 # rk=19
+# CalculateDelayedTransfers=function(){
+#   load("Phase01a.RData")
+#   nds=x[x$Note=="ND",]
+#   i=1
+#   for (i in seq(1,nrow(nds))){
+#     rk=nds[i,]$RK
+#     x[x$RK==nds[i,]$RK,]
+#     ind=nds[i,]$ind
+#     vx=x$ind %in% c(ind,ind+1)
+#     x[vx,]  
+#   
+#     off[off$RK==rk & off$Location==x[vx,]$Loc[1],]
+#     off[off$RK==rk & off$Location==x[vx,]$Loc[2],]
+#     off[off$RK==rk,]
+#     v=off[off$RK==rk & off$Location==x[vx,]$Loc[2],]$TransfersOff
+#     if (v>=1){
+#       sys1
+#     }
+#   }
+#   ol=x[x$Note=="OL",]
+#   for (i in seq(1,nrow(ol))){
+#     rk=ol[i,]$RK
+#     x[x$RK==ol[i,]$RK,]
+#     ind=ol[i,]$ind
+#     vx=x$ind %in% c(ind,ind+1)
+#     x[vx,]  
+#     
+#     off[off$RK==rk & off$Location==x[vx,]$Loc[1],]
+#     # off[off$RK==rk & off$Location==x[vx,]$Loc[2],]
+#     off[off$RK==rk,]
+#     v=off[off$RK==rk & off$Location==x[vx,]$Loc[1],]$TransfersOff
+#     if (v>=1){
+#       sys1
+#     }
+#   }
+#   
+#   
+#   
+# 
+# }
 
 save.image("Delay Functions.RData")
 
