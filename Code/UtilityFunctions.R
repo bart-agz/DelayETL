@@ -298,6 +298,10 @@ AddLateness=function(x){
   x$Lateness=as.numeric(x$DC1)-as.numeric(x$SDC1)
   return(x)
 }
+blank.omit=function(x){
+  x=x[x!=""]
+  return(x)
+}
 setwd(data_rdata_dir)
 save.image("UtilityFunctions.RData")
 load("UtilityFunctions.RData")

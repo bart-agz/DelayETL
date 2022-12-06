@@ -438,16 +438,26 @@ Calculate_Passenger_Delay=function(x){
     inds=x[vx,]$ind
     ind=inds[1]
     for (ind in inds){
-      v=x$ind==ind+1
-      off[off$Location==x[v,]$Loc & off$RK==x[v,]$RK,]
+      v=x$ind %in% c(ind)
+      # if (x[v,]$Rt%%2==0){
+      #   rr=x[v,]$Rt-1
+      # } else {
+      #   rr=x[v,]$Rt+1
+      # }
+      # xt=x[x$Rt==rr & x$DC1>(x[v,]$DC1+60*5) & x$LLoc==x[(which(v)+1),]$Loc & x$Loc==x[(which(v)+1),]$LLoc,]
+      # xt=xt[order(xt$DC1),]
+      # xt=xt[1,]
+      # off[off$Location==x[v,]$Loc & off$RK==x[v,]$RK,]
       val=off[off$RK==x[v,]$RK & off$Location==x[v,]$Loc,]$TransfersOff
       x[v,]$PDelayed=x[v,]$PDelayed+val
-      ro=x[v,]
-      ro2=x[x$Rt==ro$Rt & x$DC1>ro$DC1 & x$Loc==ro$Loc,][1,]
-      TimeBetweenRoutes=ro2$DC1-ro$DC1
-      if (is.na(TimeBetweenRoutes)){
-        TimeBetweenRoutes=30*60
-      }
+      # tval=max(x[x$ind %in% c(xt$ind,xt$ind-1),]$DC1)
+      # TimeBetweenRoutes=tval-as.numeric(x[v,]$DC1)
+      # TimeBetweenRoutes
+      # if (is.na(TimeBetweenRoutes)){
+      #   TimeBetweenRoutes=30*60
+      # }
+      TimeBetweenRoutes=15*60
+      #estimate
       x[v,]$PDelay=x[v,]$PDelay+(val*(TimeBetweenRoutes))/(60*60)
     }
     }
@@ -458,7 +468,6 @@ Calculate_Passenger_Delay=function(x){
       v=x$ind==ind
       val=off[off$RK==x[v,]$RK & off$Location==x[v,]$Loc,]$TransfersOn
       x[v,]$PDelayed=x[v,]$PDelayed+val
-      ro=x[v,]
       x[v,]$PDelay=x[v,]$PDelay+0
     }
   }
@@ -1287,22 +1296,29 @@ Group_Adjacent_Stations_RK=function(del){
   }
   return(del)
 }
-# Extend_Scheduled_Metrics=function(x){
-#   load("Phase00.RData")
-#   print(head(x))
-#   # x=Correct_WrongData(x)
-#   # x=Extend_Scheduled_Metrics(x)
-#   rks=SelectRKs(x)
-#   rk=19
-#   for (rk in rks){
-#     t=x[x$RK==rk,]
-#     t
-#   }
-#   # 19 22969-36162-413-7
-#   carlist[carlist$RK==19,]
-#   # 408/10: 0:59-413 11/20/22
-# 
-# }
+Extend_Scheduled_Metrics=function(x){
+  load("Phase00a.RData")
+  print(head(x))
+  # x=Correct_WrongData(x)
+  # x=Extend_Scheduled_Metrics(x)
+  rks=SelectRKs(x)
+  rk=19
+  for (rk in rks){
+    t=x[x$RK==rk,]
+    if (all(t$Rt %in% rev_routes)){
+      if (sum((t$SOr=="")>=1)){
+        t$STrain=na.omit(t$STrain)[1]
+        t$SOr=blank.omit(t$SOr)[1]
+        t$SDe=blank.omit(t$SDe)[1]
+        t$SRK=names(table(t$SRK)[rev(order(table(t$SRK)))])[1]
+      }
+    }
+  }
+  Update(x,t)
+  # 19 22969-36162-413-7
+  # carlist[carlist$RK==19,]
+  # 408/10: 0:59-413 11/20/22
+}
 # rk=19
 # CalculateDelayedTransfers=function(){
 #   load("Phase01a.RData")
