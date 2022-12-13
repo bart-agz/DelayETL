@@ -449,6 +449,9 @@ Calculate_Passenger_Delay=function(x){
       # xt=xt[1,]
       # off[off$Location==x[v,]$Loc & off$RK==x[v,]$RK,]
       val=off[off$RK==x[v,]$RK & off$Location==x[v,]$Loc,]$TransfersOff
+      # if (val>=1){
+      #   sysND
+      # }
       x[v,]$PDelayed=x[v,]$PDelayed+val
       # tval=max(x[x$ind %in% c(xt$ind,xt$ind-1),]$DC1)
       # TimeBetweenRoutes=tval-as.numeric(x[v,]$DC1)
@@ -556,8 +559,9 @@ Modify_All_ND=function(x){
   # 11/17/22
   # Classified as Hole 11/18/22
   # leave as is, zero out dwell delay
-  # load("PhaseAB.RData")
+  load("PhaseAB.RData")
   # rk=585
+  rk=11
   rks=SelectRKs(x)
   del=c()
   print("Checking for All_NDs")
@@ -579,6 +583,19 @@ Modify_All_ND=function(x){
           t[vx,]$LRD=0
           t[vx,]$Delay=0
         }
+        if (t[1,]$SDO==""){
+          t[1,]$SDO=t[1,]$DO
+        }
+        if (t[1,]$SDC==""){
+          t[1,]$SDC=t[1,]$DC
+        }
+        if (t[1,]$SDO1==""){
+          t[1,]$SDO1=t[1,]$DO1
+        }
+        if (t[1,]$SDC1==""){
+          t[1,]$SDC1=t[1,]$DC1
+        }
+        t[1,]$SDC
         x=x[x$RK!=t$RK[1],]
         t[1,]$Note="HL"
         t[1,]$Del=1
@@ -749,10 +766,15 @@ OL_ND=function(x){
 }
 
 Normalize=function(x,vars,sheet,dir=T){
-  # functiion to automatically convert code to Id and vice versa
+  # function to automatically convert code to Id and vice versa
   # T to go from abbr to Id
   # F to go from Id to Abbr
   # x=del;sheet="LocationList"
+  #
+  # x0=x
+  # x=x0
+  # vars="Location"; sheet= "LocationList";dir=T
+            # print(x)
   cns=colnames(x)
   n1=nrow(x)
   s=eval(eval(as.symbol(sheet)))
@@ -763,7 +785,6 @@ Normalize=function(x,vars,sheet,dir=T){
   } else {
     colnames(s)[2]="F"
   }
-  
   var=vars[1]
   for (var in vars){
     if (dir){
@@ -785,7 +806,7 @@ Normalize=function(x,vars,sheet,dir=T){
   }
   if ("Id" %in% colnames(x)){
     x=x[order(x$Id),]
-  } else {
+  } else if ("ind" %in% colnames(x)) {
     x=x[order(x$ind),]
   }
   return(x)
@@ -947,6 +968,7 @@ CleanDetailed=function(x){
 
 
 GroupDelays=function(del,x){
+  load("Phase06.RData")
   #basic grouping by location (overlapping) and time (overlapping and +- 5 minutes)
   del$Group=0
   del$ind=seq(1,nrow(del))
@@ -1359,6 +1381,26 @@ Extend_Scheduled_Metrics=function(x){
 #   
 #   
 # 
+# }
+
+# UploadVehicles=function(){
+#   setwd(Vehicle_Folder)
+#   fs=list.files()
+#   fs=setdiff(fs,list.files(pattern="~"))
+#   fs=setdiff(fs,list.files(pattern=".bak"))
+#   f=fs[1]
+#   for (f in fs){
+#     fn=strsplit(f,"\\ ")[[1]][3]
+#     fn=strsplit(fn,"\\.")[[1]][1:3]
+#     fn=paste0(fn,collapse=".")
+#     da=as.Date(fn,"%M.%d.%Y")
+#     l=CheckDates(da,"VehIncident")
+#     if (!l){
+#       x=fread(f)
+#       x$Time=period_to_seconds(hms(unlist(lapply(x$Time,function(x) strsplit(as.character(x),"\\ ")[[1]][2]))))
+#       insertDataToSQL_Bulk(x,da,"VehIncident",T) 
+#     }
+#   }
 # }
 
 save.image("Delay Functions.RData")

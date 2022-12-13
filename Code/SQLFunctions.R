@@ -15,7 +15,8 @@ insertDataToSQL_Bulk=function(data, date, tableName,individual=F){
   if (individual){
     #  SQL insert 1 row at a time
     for (i in seq(1,nrow(data))){
-      print(i)
+      # print(i)
+      # print(data[i,])
       insertDataToSQL(data[i,],date,tableName)
     }
   } else {
@@ -37,7 +38,7 @@ insertDataToSQL = function(data, date, tableName){
   data = data[,!"Id"]  
   
   #add single quotes to column values
-  vars=c("RevDate","RUNKEY","SRK","locs","Locs","DelayCodes","SDispatch","Timestamp","Note","DL")
+  vars=c("RevDate","RUNKEY","SRK","locs","Locs","DelayCodes","SDispatch","Timestamp","Note","DL","ShortDesc","Narrative",'Yard','ProblemCode','VehDate')
   for (var in vars){
     if (var %in% colnames(data)){
       data[[var]]=paste0("'",data[[var]],"'")
@@ -52,8 +53,7 @@ insertDataToSQL = function(data, date, tableName){
       data[[var]]=paste0("'",data[[var]],"'")
       if (sum(data[[var]]=="'null'")>=1){
         data[data[[var]]=="'null'",][[var]]='null'
-      }
-      
+      } 
     }
   }
   if ("Note" %in% colnames(data)){
@@ -62,7 +62,9 @@ insertDataToSQL = function(data, date, tableName){
   
   data[is.na(data)]="null"
   # data$DelayCodes[1]
-  data[data=="''"]="null"
+  if (!(tableName %in% c("VehIncident"))){
+    data[data=="''"]="null"
+  }
   # data
   
   print(paste0(tableName, " table, writing to sql server for rev date ", date))
@@ -81,10 +83,57 @@ insertDataToSQL = function(data, date, tableName){
   #  dbReadTable(conn, "Causes")
   
   insertStatement = sqlAppendTable(conn, tableName, data, row.names = FALSE);
-  
+  insertStatement
   dbExecute(conn,insertStatement);
   dbDisconnect(conn)
-  
 }
 
+
+
+
+CheckDates=function(date,tableName="Delay"){
+  #delay date format: "2022-11-20"
+  # date="2022-11-20"
+  # date;tableName='Delay'
+  conn <- dbConnect(odbc(),
+                    driver= "SQL Server",
+                    server="D-JAGNEW",
+                    database ='RelEng',
+                    Trusted_Connection = "yes")
+  # z=DBI::dbReadTable(conn,tableName) 
+  # MaxDates=dbSendQuery(conn,"SELECT distinct RevDate FROM [RelEng].[dbo].[Delay] order by revDate desc")
+  if (tableName=="VehIncident"){
+    vardate="VehDate"
+  } else if (tableName=="Delay"){
+    vardate="RevDate"
+  } else {
+    sysColError
+  }
+  MaxDates=dbSendQuery(conn,paste0("SELECT distinct ",vardate," FROM [RelEng].[dbo].[",tableName,"]"))
+  MaxDates=dbFetch(MaxDates)
+  # dbClearResult(MaxDates)
+  dbDisconnect(conn)
+  if (tableName=="Delay"){
+    date=as.Date(date,"%d%B%Y")
+    l=date %in% as.Date(unique(MaxDates[[vardate]]))
+  } else if (tableName=="VehIncident"){
+    l=as.Date(date,"%d%B%Y") %in% as.Date(unique(MaxDates[[vardate]]))
+  } else {
+    sys1
+  }
+  return (l)
+}
+
+
 save.image("SQLFunctions.RData")
+# DELETE FROM [RelEng].[dbo].[Incident] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[VehIncident] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[Delay] WHERE 1=1;
+# SELECT * FROM [RelEng].[dbo].[Locaations] WHERE Abbr="S07";
+# SELECT * FROM [RelEng].[dbo].[Locations] WHERE Abbr='S07';
+
+# DELETE FROM [RelEng].[dbo].[Delay] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[Incident] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[VehIncident] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[DispatchList] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[CarList] WHERE 1=1;

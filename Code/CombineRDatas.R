@@ -8,7 +8,10 @@ rdatas=setdiff(rdatas,"AllRDatas.RData")
 
 for (r in rdatas){
   load(r)
+  # print(r)
+  # print(exists('Normalize'))
 }
+
 save.image("AllRDatas.RData")
 
 setwd(paste(sep="",find_rstudio_root_file(),"./Data/RData"))

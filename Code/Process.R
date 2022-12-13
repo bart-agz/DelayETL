@@ -1,7 +1,7 @@
 rm(list=ls())
 # Main Process Function
 rm(list=ls())
-
+setwd("C:/R_Projects/DelayETL")
 #setwd to root of project
 setwd(find_rstudio_root_file())
 setwd(paste0(find_rstudio_root_file(),"/Code"))
@@ -18,9 +18,7 @@ source(paste0(sep="",find_rstudio_root_file(), "/Code/DelayFunctions.R"))
 source(paste0(sep="",find_rstudio_root_file(), "/Code/TransferData.R"))
 source(paste0(sep="",find_rstudio_root_file(), "/Code/UtilityFunctions.R"))
 
-
 source(paste0(sep="",find_rstudio_root_file(), "/Code/References.R"))
-
 source(paste0(sep="",find_rstudio_root_file(), "/Code/SQLFunctions.R"))
 source(paste0(sep="",find_rstudio_root_file(), "/Code/CombineRDatas.R"))
 
@@ -31,7 +29,7 @@ load("AllRDatas.RData")
 
 setwd(data_rdata_dir)
 # Sys.sleep(60*15)
-PurgeData(all=T)
+# PurgeData(all=T)
 
 TransferData()
 #transfers data from G drive to C drive
@@ -47,18 +45,24 @@ ds=list.files()
 date=ds[9]
 # ds=ds[9:length(ds)]
 ds=rev(ds)
+ds=ds[order(as.Date(ds,"%d%B%Y"))]
 date=ds[2]
+#Upload Delays
 for (date in ds){
-  d<<-date
-  print(date)
-  wd<<-paste0(data_processed_dir,'/',date)
-  wd_out<<-paste0(data_processed_dir,'/',date,"/FinalOutputs")
-  if (!dir.exists(wd_out)){
+  AlreadyCompleted=CheckDates(date,'Delay')
+  if (!AlreadyCompleted){
+    d<<-date
     print(date)
-    source(paste0(sep="",find_rstudio_root_file(), "/Code/MainFunction.R"))
+    wd<<-paste0(data_processed_dir,'/',date)
+    # wd_out<<-paste0(data_processed_dir,'/',date,"/FinalOutputs")
+    # if (!dir.exists(wd_out)){
+      print(date)
+      source(paste0(sep="",find_rstudio_root_file(), "/Code/MainFunction.R"))
+    # }
+  }
+  AlreadyCompleted=CheckDates(date,'VehIncident')
+  if (!AlreadyCompleted){
+    print(date)
+    TransferVehicle(date)    
   }
 }
-setwd(wd)
-
-# date="15NOV2022"
-# setwd("C:/")

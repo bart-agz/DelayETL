@@ -258,11 +258,11 @@ mode(x[[byv[1]]])==mode(off[[byv[1]]])
 mode(x[[byv[2]]])==mode(off[[byv[2]]])
 mode(off[[byv[3]]])=mode(x[[byv[3]]])
 
-
-
 xt=merge(x,off,by=byv,all.x=T)
 print(nrow(xt)==nrow(x))
 x=xt
+SaveReload("Phase14.RData")
+load("Phase14.RData")
 #### start writing data.table to sql
 #insert delay data into sql table
 if (insertDataToSQL_Logic){
@@ -276,6 +276,7 @@ if (insertDataToSQL_Logic){
   
   #insert RunList data into sql table
   insertDataToSQL_Bulk(x, date, "RunList")
+  
   # }
 }
 
