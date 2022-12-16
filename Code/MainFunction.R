@@ -10,9 +10,11 @@
 # date<-"06NOV2022"
 
 # date="15NOV2022"
-
+# date="03DEC2022"
 # ProcessData=function(date){
 # date=date
+print(paste("Processing",date))
+
 wd=paste0(data_processed_dir,'/',date)
 wd_out=paste0(data_processed_dir,'/',date,"/FinalOutputs")
 dir.create(wd_out,F)
@@ -133,6 +135,8 @@ SaveReload("Phase08a.RData")
 load("Phase08a.RData")
 del=Normalize_Groups(del)
 del=HL_Correction(del)
+SaveReload("Phase08b.RData")
+load("Phase08b.RData")
 del=SortID(del)
 
 SaveReload("Phase09.RData")
@@ -249,6 +253,7 @@ fwrite(di,paste0(date,' Dispatches.csv'))
 fwrite(x1,paste0(date,' TrainRun Non-Norm.csv'))
 fwrite(delNonNorm,paste0(date,' Delay Non-Norm.csv'))
 fwrite(di1,paste0(date,' Dispatches Non-Norm.csv'))
+fwrite(hol,paste0(date,' Dates.csv'))
 
 print(nrow(carlist)==nrow(di) & length(unique(di$RunKey))==length(unique(carlist$RUNKEY)) & length(intersect(carlist$RK,di$RunKey))==nrow(di))
 colnames(off)[colnames(off)=="Location"]="Loc"
@@ -263,6 +268,9 @@ print(nrow(xt)==nrow(x))
 x=xt
 SaveReload("Phase14.RData")
 load("Phase14.RData")
+di$SchDate=hol$SchDate
+di$SchCode=hol$SchCode
+
 #### start writing data.table to sql
 #insert delay data into sql table
 if (insertDataToSQL_Logic){

@@ -38,7 +38,7 @@ insertDataToSQL = function(data, date, tableName){
   data = data[,!"Id"]  
   
   #add single quotes to column values
-  vars=c("RevDate","RUNKEY","SRK","locs","Locs","DelayCodes","SDispatch","Timestamp","Note","DL","ShortDesc","Narrative",'Yard','ProblemCode','VehDate')
+  vars=c("RevDate","RUNKEY","SRK","locs","Locs","DelayCodes","SDispatch","Timestamp","Note","DL","ShortDesc","Narrative",'Yard','ProblemCode','VehDate','SchDate',"SchCode")
   for (var in vars){
     if (var %in% colnames(data)){
       data[[var]]=paste0("'",data[[var]],"'")
@@ -88,8 +88,56 @@ insertDataToSQL = function(data, date, tableName){
   dbDisconnect(conn)
 }
 
+SQLRowSummary=function(){
+  vx=c("Delay","RunList","CarList","DispatchList","VehIncident")
+  rm(tbl)
+  for (v in vx){
+    z1=SQLLoad(v)
+    if ("RevDate" %in% colnames(z1)){
+      dz="RevDate"
+    } else {
+      dz="VehDate"
+    }
+    z2=table(z1[[dz]])
+    tb=as.data.table(z2)
+    colnames(tb)=c("RevDate",v)
+    if (v=="DispatchList"){
+      z3=reordordt(z1,c("RevDate","SchCode","SchDate"))
+      z3=unique(z3)
+      tb=merge(tb,z3)
+    }
+    if (exists('tbl')){
+      tbl=merge(tbl,tb,by="RevDate",all=T)
+    } else {
+      tbl=tb
+    }
+  }
+  tbl=tbl[order(tbl$RevDate),]
+  tbl=reordordt(tbl,c("RevDate","SchDate","SchCode","RunList","Delay","DispatchList","CarList","VehIncident"))
+    return(tbl)
+}
+DELETE FROM [RelEng].[dbo].[Incident] WHERE 1=1;
+DELETE FROM [RelEng].[dbo].[VehIncident] WHERE 1=1;
+DELETE FROM [RelEng].[dbo].[Delay] WHERE 1=1;
+DELETE FROM [RelEng].[dbo].[RunList] WHERE 1=1;
+DELETE FROM [RelEng].[dbo].[DispatchList] WHERE 1=1;
+DELETE FROM [RelEng].[dbo].[RunList] WHERE 1=1;
+DELETE FROM [RelEng].[dbo].[CarList] WHERE 1=1;
 
+SQLRowSummary()
 
+SQLLoad=function(tableName="Delay"){
+  # "Delay" "RunList" "CarList" "DispatchList"
+  conn <- dbConnect(odbc(),
+                    driver= "SQL Server",
+                    server="D-JAGNEW",
+                    database ='RelEng',
+                    Trusted_Connection = "yes")
+  z=DBI::dbReadTable(conn,tableName)
+  dbDisconnect(conn)
+  z=as.data.table(z)
+  return(z)
+}
 
 CheckDates=function(date,tableName="Delay"){
   #delay date format: "2022-11-20"
@@ -100,7 +148,7 @@ CheckDates=function(date,tableName="Delay"){
                     server="D-JAGNEW",
                     database ='RelEng',
                     Trusted_Connection = "yes")
-  # z=DBI::dbReadTable(conn,tableName) 
+  # z=DBI::dbReadTable(conn,tableName)
   # MaxDates=dbSendQuery(conn,"SELECT distinct RevDate FROM [RelEng].[dbo].[Delay] order by revDate desc")
   if (tableName=="VehIncident"){
     vardate="VehDate"
@@ -124,11 +172,14 @@ CheckDates=function(date,tableName="Delay"){
   return (l)
 }
 
-
-save.image("SQLFunctions.RData")
+# 
 # DELETE FROM [RelEng].[dbo].[Incident] WHERE 1=1;
 # DELETE FROM [RelEng].[dbo].[VehIncident] WHERE 1=1;
 # DELETE FROM [RelEng].[dbo].[Delay] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[DispatchList] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[RunList] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[CarList] WHERE 1=1;
+
 # SELECT * FROM [RelEng].[dbo].[Locaations] WHERE Abbr="S07";
 # SELECT * FROM [RelEng].[dbo].[Locations] WHERE Abbr='S07';
 
@@ -137,3 +188,24 @@ save.image("SQLFunctions.RData")
 # DELETE FROM [RelEng].[dbo].[VehIncident] WHERE 1=1;
 # DELETE FROM [RelEng].[dbo].[DispatchList] WHERE 1=1;
 # DELETE FROM [RelEng].[dbo].[CarList] WHERE 1=1;
+GenerateSQL=function(type="Delete",tableName,Date){
+  # type="Delete"
+  # tableName="Delay"
+  # Date="2022-12-15"
+  # GenerateSQL("Delete","VehIncident","2022-12-15")
+  if (type=="VehIncident"){
+    dz="VehDate"
+  } else {
+    dz="RevDate"
+  }
+  cat(paste0(type," from [RelEng].[dbo].[",tableName,"] where ",dz,"='",Date,"'",sep=""))
+}
+# GenerateSQL("Delete","VehIncident","2022-12-15")
+# GenerateSQL("Select","VehIncident","2022-12-15")
+
+# DELETE FROM [RelEng].[dbo].[Delay] WHERE RevDate='2022-12-02'
+# DELETE FROM [RelEng].[dbo].[Incident] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[VehIncident] WHERE VehDate='2022-12-02'
+# DELETE FROM [RelEng].[dbo].[DispatchList] WHERE RevDate='2022-12-02'
+# DELETE FROM [RelEng].[dbo].[CarList] WHERE RevDate='2022-12-02'
+save.image("SQLFunctions.RData")

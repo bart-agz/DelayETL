@@ -9,11 +9,14 @@ LoadData=function(date){
   print(date)
   # initial load and cleanup of badown data
   # date="08NOV2022"
+  # date="13DEC2022"
   fn=paste0(date,'.csv')
   setwd(data_processed_dir)
   dir.create(date,F)
   setwd(data_individual_dir)
   del=fread(fn)
+  hol=as.data.table(unique(cbind(del$RevDate,del$SchDate,del$SchCode)))
+  colnames(hol)=c("RevDate","SchDate","SchCode")
   del100=del
   del=as.data.table(del)
   del=ConvertTimes_ToTSec(del)
@@ -166,6 +169,7 @@ LoadData=function(date){
   # runkey<<-q
   del<<-del
   del100<<-del100
+  hol<<-hol
   print(date)
 }
 # date="08NOV2022"

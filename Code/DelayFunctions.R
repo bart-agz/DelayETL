@@ -561,13 +561,13 @@ Modify_All_ND=function(x){
   # leave as is, zero out dwell delay
   load("PhaseAB.RData")
   # rk=585
-  rk=11
+  rk=12
   rks=SelectRKs(x)
   del=c()
   print("Checking for All_NDs")
   for (rk in rks){
     t=x[x$RK==rk,]
-    hl=t[1,]$Note=="HL"
+    hl=t[1,]$Note=="HL" # All_ND
     nd="ND" %in% t$Note
     if (!hl & nd){
       t=OverrideNA(t)
@@ -597,7 +597,7 @@ Modify_All_ND=function(x){
         }
         t[1,]$SDC
         x=x[x$RK!=t$RK[1],]
-        t[1,]$Note="HL"
+        t[1,]$Note="HL" # All_ND
         t[1,]$Del=1
         # t$LRD=0
         t$DD=0
@@ -653,6 +653,7 @@ Fix_CL=function(x){
 SortID=function(del){
   # del=Normalize_Groups(del)
   # del=SortID(del)
+  load("Phase08b.RData")
   v1=nrow(del)
   # re-sorts del to favor same runkeys but different delays then time
   cn=colnames(del)
@@ -1025,6 +1026,7 @@ GroupDelays=function(del,x){
 HL_ND_OL=function(x){
   # function to override all delays at stations were Hole is present 
   rks=SelectRKs(x)
+  rk=12
   for (rk in rks){
     t=x[x$RK==rk,]
     hl=sum(agrepl("HL",t$Note))>=1
@@ -1032,6 +1034,9 @@ HL_ND_OL=function(x){
     v1[1]=hl
     if (all(v1)){
       t[t$Note!="HL",]$Del=0
+      # if (t[1,]$Note=="HL AllL_ND"){
+      #   t[1,]$Del=1
+      # }
       x=Update(x,t)
     }
   }
@@ -1128,9 +1133,9 @@ Group_Delays_LA=function(x){
 }
 
 CalculateDispatches=function(x){
-  # rm(list=ls())
-  # load('del.RData')
-  
+  rm(list=ls())
+  load("Phase09.RData")
+
   length(unique(sort(c(unique(x$RK),unique(us$RK)))))
   length(unique(carlist$RK))
   setdiff(unique(sort(c(unique(x$RK),unique(us$RK)))),unique(carlist$RK))
@@ -1141,6 +1146,7 @@ CalculateDispatches=function(x){
   x=rbindlist(list(x,us),fill=T)
   x=unique(x)
   di=x[x$Loc==x$SOr | (x$RK %in% unique(us$RK) & x$Or==x$Loc) | x$Note=="HL",]
+  #agrepl hl to cover hl all_nd too agrepl("HL",x$Note,0)
   di=unique(di)
   rks=x[!x$RK %in% di$RK & x$Or==x$Loc,]
   # offload and cancelled runkeys

@@ -29,40 +29,50 @@ load("AllRDatas.RData")
 
 setwd(data_rdata_dir)
 # Sys.sleep(60*15)
-# PurgeData(all=T)
+PurgeData(all=T)
+# PurgeData("12DEC2022")
+date="03DEC2022"
+insertDataToSQL_Logic=F
 
-TransferData()
-#transfers data from G drive to C drive
-
-LoadData_Bulk()
-# LoadData("15NOV2022")
-#initial load data
-timestamp()
-insertDataToSQL_Logic=T
-
-setwd(data_processed_dir)
-ds=list.files()
-date=ds[9]
-# ds=ds[9:length(ds)]
-ds=rev(ds)
-ds=ds[order(as.Date(ds,"%d%B%Y"))]
-date=ds[2]
-#Upload Delays
-for (date in ds){
-  AlreadyCompleted=CheckDates(date,'Delay')
-  if (!AlreadyCompleted){
-    d<<-date
+while (T){
+  TransferData()
+  #transfers data from G drive to C drive
+  
+  LoadData_Bulk()
+  # LoadData("15NOV2022")
+  #initial load data
+  timestamp()
+  insertDataToSQL_Logic=T
+  
+  setwd(data_processed_dir)
+  ds=list.files()
+  ds
+  date=ds[9]
+  # ds=ds[9:length(ds)]
+  ds=rev(ds)
+  ds=ds[order(as.Date(ds,"%d%B%Y"))]
+  date=ds[2]
+  #Upload Delays
+  find_rstudio_root_file()
+  for (date in ds){
     print(date)
-    wd<<-paste0(data_processed_dir,'/',date)
-    # wd_out<<-paste0(data_processed_dir,'/',date,"/FinalOutputs")
-    # if (!dir.exists(wd_out)){
+    AlreadyCompleted=CheckDates(date,'Delay')
+    if (!AlreadyCompleted){
+      d<<-date
+      print(date)
+      wd<<-paste0(data_processed_dir,'/',date)
+      # wd_out<<-paste0(data_processed_dir,'/',date,"/FinalOutputs")
+      # if (!dir.exists(wd_out)){
       print(date)
       source(paste0(sep="",find_rstudio_root_file(), "/Code/MainFunction.R"))
-    # }
+      # }
+    }
+    AlreadyCompleted=CheckDates(date,'VehIncident')
+    if (!AlreadyCompleted){
+      print(date)
+      TransferVehicle(date)    
+    }
   }
-  AlreadyCompleted=CheckDates(date,'VehIncident')
-  if (!AlreadyCompleted){
-    print(date)
-    TransferVehicle(date)    
-  }
+  print("Waiting")
+  Sys.sleep(60*30)
 }

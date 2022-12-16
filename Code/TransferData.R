@@ -63,8 +63,8 @@ TransferVehicleData=function(){
 
 # Vehicles
 TransferVehicle_OLD=function(){
-  setwd(Vehicle_Folder)
-  fs=list.files()
+  # setwd(Vehicle_Folder)
+  fs=list.files(Vehicle_Folder)
   f=fs[1]
   for (f in fs){
     x=fread(f)
@@ -127,12 +127,13 @@ TransferVehicle=function(date){
     d2=paste0(0,d2)
   }
   f=paste0(d1,".",d2,".",year(d))
-  setwd(GDrive_Vehicles)
-  fs=list.files(pattern=".xlsx")
-  fs=setdiff(fs,list.files(pattern="~"))
-  fs=setdiff(fs,list.files(pattern=".bak"))
+  # setwd(GDrive_Vehicles)
+  fs=list.files(path=GDrive_Vehicles,pattern=".xlsx")
+  fs=setdiff(fs,fs[agrepl(".bak",fs,0)])
+  fs=setdiff(fs,fs[agrepl("~",fs,0)])
   fn=fs[agrepl(f,fs,max.distance = 0)]
-  x=readxl::read_xlsx(fn)
+  
+  x=readxl::read_xlsx(paste0(GDrive_Vehicles,"/",fn))
   x=as.data.table(x)
   x$VTDNum="null"
   x0=x
