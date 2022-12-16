@@ -116,15 +116,8 @@ SQLRowSummary=function(){
   tbl=reordordt(tbl,c("RevDate","SchDate","SchCode","RunList","Delay","DispatchList","CarList","VehIncident"))
     return(tbl)
 }
-DELETE FROM [RelEng].[dbo].[Incident] WHERE 1=1;
-DELETE FROM [RelEng].[dbo].[VehIncident] WHERE 1=1;
-DELETE FROM [RelEng].[dbo].[Delay] WHERE 1=1;
-DELETE FROM [RelEng].[dbo].[RunList] WHERE 1=1;
-DELETE FROM [RelEng].[dbo].[DispatchList] WHERE 1=1;
-DELETE FROM [RelEng].[dbo].[RunList] WHERE 1=1;
-DELETE FROM [RelEng].[dbo].[CarList] WHERE 1=1;
 
-SQLRowSummary()
+# SQLRowSummary()
 
 SQLLoad=function(tableName="Delay"){
   # "Delay" "RunList" "CarList" "DispatchList"
@@ -209,3 +202,10 @@ GenerateSQL=function(type="Delete",tableName,Date){
 # DELETE FROM [RelEng].[dbo].[DispatchList] WHERE RevDate='2022-12-02'
 # DELETE FROM [RelEng].[dbo].[CarList] WHERE RevDate='2022-12-02'
 save.image("SQLFunctions.RData")
+# DELETE FROM [RelEng].[dbo].[Incident] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[VehIncident] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[Delay] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[RunList] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[DispatchList] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[RunList] WHERE 1=1;
+# DELETE FROM [RelEng].[dbo].[CarList] WHERE 1=1;
