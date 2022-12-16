@@ -153,6 +153,8 @@ LoadData=function(date){
   fwrite(carlist,paste(datesl[1]$RevDate,"CarList.csv"))
   fwrite(datesl,paste(datesl[1]$RevDate,"Dates.csv"))
   fwrite(pot,paste(datesl[1]$RevDate,"POT.csv"))
+  fwrite(hol,paste(datesl[1]$RevDate,"HOL.csv"))
+  
   scheduled_routes=seq(1,99)
   
   del0<<-del

@@ -390,7 +390,7 @@ Calculate_NextRK=function(del){
 }
 Calculate_Passenger_Delay=function(x){
   # save.image("dgv.RData")
-  load("phase04_1.RData")
+  # load("phase04_1.RData")
   vx=x$Delay<0 & x$Code!="" & !agrepl("ED",x$Code,0)
   if (sum(vx)>=1){
     x[vx,]$Delay=0
@@ -517,7 +517,7 @@ Correct_WrongData=function(x){
 
 Calculate_LA=function(x){
   # Calculate LAs, LD's due to previous delays and EOL Late
-  load("phase04_2.RData")
+  # load("phase04_2.RData")
   rks=SelectRKs(x)
   for (rk in rks){
     te=sr(x,rk)
@@ -559,7 +559,7 @@ Modify_All_ND=function(x){
   # 11/17/22
   # Classified as Hole 11/18/22
   # leave as is, zero out dwell delay
-  load("PhaseAB.RData")
+  # load("PhaseAB.RData")
   # rk=585
   rk=12
   rks=SelectRKs(x)
@@ -653,7 +653,7 @@ Fix_CL=function(x){
 SortID=function(del){
   # del=Normalize_Groups(del)
   # del=SortID(del)
-  load("Phase08b.RData")
+  # load("Phase08b.RData")
   v1=nrow(del)
   # re-sorts del to favor same runkeys but different delays then time
   cn=colnames(del)
@@ -829,7 +829,7 @@ ExpandDI=function(di){
   # 
   # di[di$RunKey==585,]
   # del[del$RunKey==585.]
-  load("Phase09a.RData")
+  # load("Phase09a.RData")
   di$Scheduled=as.numeric(di$Rt %in% rev_routes)
   di$Delayed=as.numeric(di$Rt %in% rev_routes & di$DelayCodes!="")
   di$Late=as.numeric(di$Rt %in% rev_routes & (di$EOL>=LatenessThreshold))
@@ -969,7 +969,7 @@ CleanDetailed=function(x){
 
 
 GroupDelays=function(del,x){
-  load("Phase06.RData")
+  # load("Phase06.RData")
   #basic grouping by location (overlapping) and time (overlapping and +- 5 minutes)
   del$Group=0
   del$ind=seq(1,nrow(del))
@@ -1086,7 +1086,7 @@ GroupDelays2=function(del,x){
 }
 
 Group_Delays_LA=function(x){
-  load("Phase06a.RData")
+  # load("Phase06a.RData")
   del$ind=seq(1,nrow(del))
   vx=which(del$Code=="LA")
   del[del$Group==28,]
@@ -1134,7 +1134,7 @@ Group_Delays_LA=function(x){
 
 CalculateDispatches=function(x){
   rm(list=ls())
-  load("Phase09.RData")
+  # load("Phase09.RData")
 
   length(unique(sort(c(unique(x$RK),unique(us$RK)))))
   length(unique(carlist$RK))
@@ -1217,7 +1217,7 @@ Add_Del_Locations=function(x){
 }
 CollapseDelays=function(x){
   # Function: Collapses Delay
-  load("Phase05.RData")
+  # load("Phase05.RData")
   rks=SelectRKs(x)
   cns=cc("Id RevDate RK PRK STrain Tr Rt SOr SDe Or De Time1 Time2 Loc1 Loc2 Delay Code EOL PDelay PDelayed")
   del=matrix(ncol=length(cns),nrow=0)
@@ -1290,7 +1290,7 @@ CollapseDelays=function(x){
 }
 Group_Adjacent_Stations_RK=function(del){
   # group adject delays for 1 runkey
-  load("Phase08.RData")
+  # load("Phase08.RData")
   rks=SelectRKs(del)
   del
   print("Grouping Adjacent Stations per RK")
@@ -1325,7 +1325,7 @@ Group_Adjacent_Stations_RK=function(del){
   return(del)
 }
 Extend_Scheduled_Metrics=function(x){
-  load("Phase00a.RData")
+  # load("Phase00a.RData")
   print(head(x))
   # x=Correct_WrongData(x)
   # x=Extend_Scheduled_Metrics(x)

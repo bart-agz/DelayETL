@@ -56,6 +56,8 @@ while (T){
   find_rstudio_root_file()
   for (date in ds){
     print(date)
+    timestamp()
+    
     AlreadyCompleted=CheckDates(date,'Delay')
     if (!AlreadyCompleted){
       d<<-date
@@ -74,5 +76,7 @@ while (T){
     }
   }
   print("Waiting")
+  timestamp()
   Sys.sleep(60*30)
 }
+#318
