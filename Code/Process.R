@@ -29,7 +29,7 @@ load("AllRDatas.RData")
 
 setwd(data_rdata_dir)
 # Sys.sleep(60*15)
-PurgeData(all=T)
+# PurgeData(all=T)
 # PurgeData("12DEC2022")
 date="03DEC2022"
 insertDataToSQL_Logic=F

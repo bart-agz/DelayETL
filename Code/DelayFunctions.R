@@ -1290,7 +1290,7 @@ CollapseDelays=function(x){
 }
 Group_Adjacent_Stations_RK=function(del){
   # group adject delays for 1 runkey
-  # load("Phase08.RData")
+  load("Phase08.RData")
   rks=SelectRKs(del)
   del
   print("Grouping Adjacent Stations per RK")
@@ -1316,6 +1316,10 @@ Group_Adjacent_Stations_RK=function(del){
           print(nn)
         } else if (length(unique(nn$Group))==1 & all(!is.na(nn$Group))) {
           #do nothing
+        } else if (sum(is.na(unique(nn$Group)))==1 & sum(!is.na(unique(nn$Group)))==1) {
+          nn$Group=na.omit(nn$Group)
+          del=Update(del,nn)
+          print(nn)
         } else {
           sysGroup_RK_Error
         }
