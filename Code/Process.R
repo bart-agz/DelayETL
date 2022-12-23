@@ -69,10 +69,11 @@ while (T){
       source(paste0(sep="",find_rstudio_root_file(), "/Code/MainFunction.R"))
       # }
     }
+    print("Vehicles")
     AlreadyCompleted=CheckDates(date,'VehIncident')
     if (!AlreadyCompleted){
       print(date)
-      TransferVehicle(date)    
+      TransferVehicle(date)
     }
   }
   print("Waiting")
@@ -80,3 +81,7 @@ while (T){
   Sys.sleep(60*30)
 }
 #318
+# Error in utils::unzip(zip_path, list = TRUE) : 
+#   zip file 'G:\SAS_VIYA\Vehicle\Data\' cannot be opened
+#    12/21/22 just re-run?
+

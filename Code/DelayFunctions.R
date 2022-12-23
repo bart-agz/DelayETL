@@ -517,7 +517,7 @@ Correct_WrongData=function(x){
 
 Calculate_LA=function(x){
   # Calculate LAs, LD's due to previous delays and EOL Late
-  # load("phase04_2.RData")
+  load("phase04_2.RData")
   rks=SelectRKs(x)
   for (rk in rks){
     te=sr(x,rk)
