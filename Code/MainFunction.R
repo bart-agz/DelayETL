@@ -58,6 +58,8 @@ load("Phase01.RData")
 
 x=Fix_CL(x)
 x=Add_DH_LR(x)
+SaveReload("Phase01_0.RData")
+load("Phase01_0.RData")
 x=Add_OL_CN_HL_ND(x) 
 
 SaveReload("Phase01a.RData")
@@ -178,8 +180,7 @@ di$Id=seq(1,nrow(di))
 
 SaveReload("Phase11.RData")
 SaveReload("Phase11.RData",save=F,reload=T)
-# setwd("C:/R_Projects/DelayETL/Data/Processed/13NOV2022")
-
+# setwd("C:/R_Projects/DelayETL/Data/Processed/01JAN2023")
 load("Phase11.RData")
 v=c("Id",setdiff(colnames(x),"ind"))
 x$Id=seq(1,nrow(x))
@@ -211,7 +212,6 @@ di1=reordordt(di1,cc("Id RevDate RunKey Route SDispatch SchedTrain ActOrigin Act
 
 SaveReload("Phase12.RData")
 SaveReload("Phase12.RData",save=F,reload =T)
-# setwd("C:/Users/jagnew/source/repos/bart-agz/DelayETL/Data/Processed/13NOV2022/")
 load("Phase12.RData")
 setwd(wd_out)
 di1[di1=="",]=NA
@@ -235,11 +235,16 @@ di[is.na(di$DelayCodes),]$DelayCodes=""
 
 vars=cc("DO DC SDC SDO AD Note DL")
 for (var in vars){
-  x[is.na(x[[var]]),][[var]]=""
+  if (sum(is.na(x[[var]]))>=1){
+    x[is.na(x[[var]]),][[var]]=""
+  }
 }
 vars=cc("AD Note DL DO DC SDO SDC")
 for (var in vars){
-  x[x[[var]]=="",][[var]]="null"
+  if (sum(is.na(x[[var]]))>=1){
+    x[x[[var]]=="",][[var]]="null"
+
+  }
 }
 SaveReload("Phase13.RData")
 SaveReload("Phase13.RData",save=F,reload =T)

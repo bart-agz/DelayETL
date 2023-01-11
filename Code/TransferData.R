@@ -132,42 +132,44 @@ TransferVehicle=function(date){
   fs=setdiff(fs,fs[agrepl(".bak",fs,0)])
   fs=setdiff(fs,fs[agrepl("~",fs,0)])
   fn=fs[agrepl(f,fs,max.distance = 0)]
-  
-  x=readxl::read_xlsx(paste0(GDrive_Vehicles,"/",fn))
-  x=as.data.table(x)
-  x$VTDNum="null"
-  x0=x
-  x=Normalize(x,"Location","LocationList")
-  x$Time=unlist(lapply(x$Time,function(x) strsplit(as.character(x),"\\ ")[[1]][2]))
-  vx=cc("VehDate WorkOrderNum VehTime Train Car CarHours Yard Location ProblemCode VandalTags ShortDesc Narrative VTDNum")
-  colnames(x)=vx
-  cns=cc("VehDate VehTime WorkOrderNum VTDNum Train Car CarHours Yard Location ProblemCode VandalTags ShortDesc Narrative")
-  # x$VehTime=format(strptime(x$VehTime, format="%H:%M:%S"), format = "%H:%M:%S")
-  x$VehTime=period_to_seconds(hms(x$VehTime))
-  # x$VehTime=hms(x$VehTime)
-  # vx=x$Train==""
-  # if (sum(vx)>=1){
-  #   x[vx,]$Train="null"        
-  # }
-  vx=x$VandalTags=="" | is.na(x$VandalTags)
-  if (sum(vx)>=1){
-    mode(x$VandalTags)="character"
-    x[vx,]$VandalTags="null"
+  file=paste0(GDrive_Vehicles,"/",fn)
+  if (exists(file)){
+    x=readxl::read_xlsx(file)
+    x=as.data.table(x)
+    x$VTDNum="null"
+    x0=x
+    x=Normalize(x,"Location","LocationList")
+    x$Time=unlist(lapply(x$Time,function(x) strsplit(as.character(x),"\\ ")[[1]][2]))
+    vx=cc("VehDate WorkOrderNum VehTime Train Car CarHours Yard Location ProblemCode VandalTags ShortDesc Narrative VTDNum")
+    colnames(x)=vx
+    cns=cc("VehDate VehTime WorkOrderNum VTDNum Train Car CarHours Yard Location ProblemCode VandalTags ShortDesc Narrative")
+    # x$VehTime=format(strptime(x$VehTime, format="%H:%M:%S"), format = "%H:%M:%S")
+    x$VehTime=period_to_seconds(hms(x$VehTime))
+    # x$VehTime=hms(x$VehTime)
+    # vx=x$Train==""
+    # if (sum(vx)>=1){
+    #   x[vx,]$Train="null"        
+    # }
+    vx=x$VandalTags=="" | is.na(x$VandalTags)
+    if (sum(vx)>=1){
+      mode(x$VandalTags)="character"
+      x[vx,]$VandalTags="null"
+    }
+    # x$Time=period_to_seconds(hms(unlist(lapply(x$Time,function(x) strsplit(as.character(x),"\\ ")[[1]][2]))))
+    x[['VandalTags']]=paste0("'",x[['VandalTags']],"'")
+    x=reordordt(x,cns)
+    x$VehDate=as.Date(x$VehDate)
+    x$Narrative=gsub("\\:","\\.",x$Narrative)
+    x$Narrative=gsub("\\'","\\ ",x$Narrative)
+    
+    x$ProblemCode=gsub("\\:","\\.",x$ProblemCode)
+    x$ProblemCode=gsub("\\'","\\ ",x$ProblemCode)
+    
+    
+    x$ShortDesc=gsub("\\:","\\.",x$ShortDesc)
+    x$ShortDesc=gsub("\\'","\\ ",x$ShortDesc)                                                                                           
+    insertDataToSQL_Bulk(x,date,"VehIncident")
   }
-  # x$Time=period_to_seconds(hms(unlist(lapply(x$Time,function(x) strsplit(as.character(x),"\\ ")[[1]][2]))))
-  x[['VandalTags']]=paste0("'",x[['VandalTags']],"'")
-  x=reordordt(x,cns)
-  x$VehDate=as.Date(x$VehDate)
-  x$Narrative=gsub("\\:","\\.",x$Narrative)
-  x$Narrative=gsub("\\'","\\ ",x$Narrative)
-  
-  x$ProblemCode=gsub("\\:","\\.",x$ProblemCode)
-  x$ProblemCode=gsub("\\'","\\ ",x$ProblemCode)
-  
-  
-  x$ShortDesc=gsub("\\:","\\.",x$ShortDesc)
-  x$ShortDesc=gsub("\\'","\\ ",x$ShortDesc)                                                                                           
-  insertDataToSQL_Bulk(x,date,"VehIncident")
 }
 setwd(data_rdata_dir)
 save.image("TransferData.RData")

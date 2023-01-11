@@ -32,7 +32,8 @@ insertDataToSQL_Bulk=function(data, date, tableName,individual=F){
     }
   }
 }
-
+# data=x[1,]
+# tableName="RunList"
 insertDataToSQL = function(data, date, tableName){
   # update so of the column values
   data = data[,!"Id"]  
@@ -45,7 +46,7 @@ insertDataToSQL = function(data, date, tableName){
     }
   }
   
-  vars=c("DO","DC","SDO","SDC")
+  vars=c("DO","DC","SDO","SDC","AD")
   var="Note"
   
   for (var in vars){
@@ -209,3 +210,12 @@ save.image("SQLFunctions.RData")
 # DELETE FROM [RelEng].[dbo].[DispatchList] WHERE 1=1;
 # DELETE FROM [RelEng].[dbo].[RunList] WHERE 1=1;
 # DELETE FROM [RelEng].[dbo].[CarList] WHERE 1=1;
+
+
+# DELETE FROM [RelEng].[dbo].[Delay] WHERE RevDate>='2022-12-31'
+# 
+# DELETE FROM [RelEng].[dbo].[VehIncident] WHERE VehDate>='2022-12-31'
+# 
+# DELETE FROM [RelEng].[dbo].[DispatchList] WHERE RevDate>='2022-12-31'
+# DELETE FROM [RelEng].[dbo].[CarList] WHERE RevDate >='2022-12-31'
+# DELETE FROM [RelEng].[dbo].[Runlist] WHERE RevDate >='2022-12-31'

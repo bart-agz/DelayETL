@@ -282,31 +282,40 @@ Delay_CleanCodes=function(x){
 }
 
 Add_OL_CN_HL_ND=function(x){
+  load("Phase01_0.RData")
   # codes CL HL ND schedule notes and set delays to 0 (not OL)
   vx=x$Note=="CL" | x$Note=="Cancel Location"
   vx1=x$Or==x$Loc
-  if (sum(vx)>=1){
-    # x[vx & vx1,]$Del=1
-    x[vx & vx1,]$Code="CL"
-    x[vx & vx1,]$Delay=0
+  if (sum(is.na(vx))!=nrow(x)){
+    if (sum(vx)>=1){
+      # x[vx & vx1,]$Del=1
+      x[vx & vx1,]$Code="CL"
+      x[vx & vx1,]$Delay=0
+    }
   }
   vx=x$Note=="Offload Location" | x$Note=="OL" 
   vx1=x$De==x$Loc
+  if (sum(is.na(vx))!=nrow(x)){
   if (sum(vx)>=1){
     # x[vx & vx1,]$Del=1
     x[vx & vx1,]$Code="OL"
     # x[vx & vx1,]$Delay=0
   }
+  }
   vx=x$Note=="No Dwell" | x$Note=="ND" | agrepl("ND",x$Note,0)
-  if (sum(vx)>=1){
+  if (sum(is.na(vx))!=nrow(x)){
+    if (sum(vx)>=1){
     # x[vx,]$Del=1
     x[vx,]$Code="ND"
     x[vx,]$Delay=0
   }
+}
   vx=x$Note=="Hole" | x$Note=="HL"
-  if (sum(vx)>=1){
+  if (sum(is.na(vx))!=nrow(x)){
+    if (sum(vx)>=1){
     # x[vx,]$Del=1
     x[vx,]$Code="HL"
+    }
   }
   return(x)
 }
@@ -1294,6 +1303,7 @@ Group_Adjacent_Stations_RK=function(del){
   rks=SelectRKs(del)
   del
   print("Grouping Adjacent Stations per RK")
+  # del$RK==
   for (i in seq(1,nrow(del))){
     g=max(na.omit(del$Group))+1
     n=del[i,]
@@ -1321,7 +1331,9 @@ Group_Adjacent_Stations_RK=function(del){
           del=Update(del,nn)
           print(nn)
         } else {
-          sysGroup_RK_Error
+          del[del$Group %in% nn$Group,]$Group=max(nn$Group)
+          # 1/5/23 fix
+          # sysGroup_RK_Error
         }
       }
     }
